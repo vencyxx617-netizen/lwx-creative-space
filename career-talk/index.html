@@ -1151,7 +1151,6 @@
       curtainVideo.addEventListener('ended',closeCurtain,{once:true});
       curtainVideo.addEventListener('error',closeCurtain,{once:true});
             curtainVideo.addEventListener('stalled',closeCurtain,{once:true});
-        <video id="opening-curtain-video" muted playsinline autoplay preload="auto">
       // Never let a missing or blocked opening video hide the actual presentation.
       setTimeout(closeCurtain,3500);
     }
@@ -1232,7 +1231,7 @@
 </div>
 
 <div id="opening-curtain" aria-label="开屏动画">
-  <video id="opening-curtain-video" muted playsinline preload="auto">
+  <video id="opening-curtain-video" muted playsinline autoplay preload="auto">
     <source src="assets/opening-animation.mp4" type="video/mp4">
   </video>
   <div class="opening-film-frame"></div>
