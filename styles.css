@@ -1,0 +1,134 @@
+:root {
+  --mint: #a8e8c0;
+  --green: #1e765e;
+  --pink: #ff6f91;
+  --coral: #ff8c73;
+  --blue: #2876d5;
+  --yellow: #ffd84d;
+  --ink: #183641;
+  --cream: #fff9ed;
+  --paper: rgba(255, 252, 241, .93);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--cream);
+  font-family: "Noto Sans SC", sans-serif;
+}
+button { font: inherit; }
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #c3f3d2;
+  transition: opacity .7s ease, visibility .7s ease;
+}
+.loader.is-done { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-window {
+  position: absolute;
+  inset: 8vh 15vw 7vh;
+  overflow: hidden;
+  background: linear-gradient(#7ed2ef 0 58%, #d9f4d2 58%);
+  border: 14px solid #fff8e6;
+  box-shadow: 0 24px 0 rgba(27, 87, 76, .12), 0 35px 80px rgba(26, 96, 72, .18);
+}
+.loader-window:after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 45%, rgba(255,255,255,.45) 50%, transparent 56%); }
+.loader-city, .cityline {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 45%;
+  background: linear-gradient(90deg, #62a8b5 0 7%, transparent 7% 11%, #8bb1ba 11% 17%, transparent 17% 20%, #5f9eb0 20% 28%, transparent 28% 32%, #82bdb1 32% 42%, transparent 42% 46%, #659ab0 46% 57%, transparent 57% 62%, #79aeb4 62% 75%, transparent 75% 78%, #609aaa 78% 90%, transparent 90%);
+  opacity: .72;
+}
+.loader-sill { position: absolute; z-index: 2; bottom: 0; height: 12%; width: 100%; background: #fff9ed; }
+.loader-sun { position: absolute; right: 14vw; top: 8vh; width: 150px; aspect-ratio: 1; border-radius: 50%; background: var(--yellow); opacity: .85; }
+.loader-cloud, .sky-cloud { position: absolute; width: 150px; height: 46px; border-radius: 50px; background: rgba(255,255,255,.72); }
+.loader-cloud:before, .sky-cloud:before { content: ""; position: absolute; left: 26px; bottom: 12px; width: 62px; height: 62px; border-radius: 50%; background: inherit; }
+.loader-cloud:after, .sky-cloud:after { content: ""; position: absolute; right: 25px; bottom: 9px; width: 52px; height: 52px; border-radius: 50%; background: inherit; }
+.cloud-one { top: 20%; left: 8%; } .cloud-two { top: 38%; right: 7%; transform: scale(.74); }
+.loader-copy { position: relative; z-index: 4; text-align: center; margin-top: 3vh; }
+.eyebrow { margin: 0 0 14px; letter-spacing: .18em; font: 700 12px "Baloo 2", sans-serif; color: var(--green); }
+.loader h1 { margin: 0; color: var(--green); font-size: clamp(34px, 5vw, 70px); line-height: 1.08; letter-spacing: .04em; text-shadow: 4px 4px 0 #fff8e6; }
+.loader h1 span { color: var(--pink); }
+.loader-copy > p:last-of-type { margin: 20px 0 10px; color: var(--green); font-weight: 700; }
+.loader-progress { width: min(270px, 55vw); height: 9px; margin: auto; border: 2px solid var(--green); border-radius: 9px; background: rgba(255,255,255,.4); overflow: hidden; }
+.loader-progress span { display: block; width: 0; height: 100%; background: var(--pink); transition: width .15s linear; }
+.loader-sticker { position: absolute; z-index: 3; font-size: 72px; color: var(--pink); transform: rotate(-18deg); }
+.sticker-star { top: 13vh; left: 11vw; color: var(--yellow); } .sticker-heart { right: 12vw; bottom: 15vh; }
+
+.room { position: relative; height: 100vh; min-height: 680px; overflow: hidden; background: var(--cream); isolation: isolate; }
+.room:before { content: ""; position: absolute; inset: 0; z-index: 10; pointer-events: none; opacity: .2; background-image: radial-gradient(rgba(24,54,65,.22) .7px, transparent .7px); background-size: 5px 5px; mix-blend-mode: multiply; }
+.sun-glow { position: absolute; z-index: 1; width: 58vw; height: 58vw; max-width: 800px; max-height: 800px; left: 14vw; top: -22vw; border-radius: 50%; background: rgba(255,225,119,.54); filter: blur(15px); }
+.sky { position: absolute; z-index: 0; inset: 0 0 28%; background: linear-gradient(140deg, #9de8dc, #a8dff2 53%, #d8f4d7); border-bottom: 11px solid #f8efd8; }
+.sky:after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, rgba(255,255,255,.2), transparent 40%, rgba(255,255,255,.24)); }
+.sky-cloud { z-index: 1; transform: scale(.8); } .cloud-a { top: 16%; left: 18%; } .cloud-b { top: 12%; right: 13%; transform: scale(.65); } .cloud-c { top: 37%; right: 34%; transform: scale(.45); opacity: .5; }
+.cityline { z-index: 2; height: 40%; opacity: .42; background-color: transparent; bottom: 0; }
+.window-frame { position: absolute; z-index: 3; top: 0; bottom: 0; width: 20px; background: #fbf5e3; box-shadow: 0 0 0 5px rgba(223, 197, 146, .25); }
+.window-frame-left { left: 12%; } .window-frame-right { right: 12%; }
+.window-sill { position: absolute; z-index: 4; bottom: 0; left: 8%; right: 8%; height: 28px; background: #fbf5e3; box-shadow: 0 8px 0 rgba(91, 115, 105, .18); }
+.wall { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
+.wall-title { position: absolute; top: 8%; left: 6%; color: var(--green); font: 800 clamp(30px, 4vw, 68px)/.84 "Baloo 2", sans-serif; transform: rotate(-6deg); text-shadow: 3px 3px 0 var(--yellow); }
+.wall-title span { color: var(--pink); }
+.map-card { position: absolute; top: 7%; right: 27%; width: min(310px, 24vw); padding: 14px 18px; background: #fff4c9; border: 3px solid var(--ink); transform: rotate(5deg); box-shadow: 8px 10px 0 rgba(40,118,213,.25); }
+.map-label { font: 800 13px "Baloo 2"; color: var(--pink); letter-spacing: .12em; }
+.map-card svg { width: 100%; margin: 2px 0 -6px; } .map-card path { fill: none; stroke: var(--blue); stroke-width: 4; stroke-dasharray: 7 7; } .map-card circle { fill: var(--pink); stroke: var(--ink); stroke-width: 2; }
+.map-places { display: flex; justify-content: space-between; color: var(--green); font-size: 10px; font-weight: 800; }
+.tape-note { position: absolute; padding: 12px 18px; background: #fff19b; font: 700 14px "Baloo 2", sans-serif; line-height: 1.15; box-shadow: 5px 7px 0 rgba(24,54,65,.15); }
+.tape-note:before { content: ""; position: absolute; top: -10px; left: 22%; width: 58%; height: 20px; background: rgba(255,255,255,.6); transform: rotate(-4deg); }
+.note-one { top: 26%; left: 9%; transform: rotate(-7deg); } .note-two { top: 31%; right: 14%; background: var(--pink); color: #fff; transform: rotate(9deg); }
+.photo-polaroid { position: absolute; padding: 8px 8px 16px; background: #fff; color: var(--green); text-align: center; font: 800 16px "Baloo 2"; box-shadow: 5px 8px 0 rgba(24,54,65,.13); }
+.photo-polaroid div { width: 94px; aspect-ratio: 1 / 1.12; padding-top: 22px; background: linear-gradient(135deg, var(--blue), var(--mint)); }
+.polaroid-one { left: 28%; top: 13%; transform: rotate(-11deg); } .polaroid-two { right: 7%; top: 20%; transform: rotate(12deg); }
+.clothes-rack { position: absolute; top: 7%; right: 3%; width: 150px; height: 280px; border: 6px solid var(--green); border-bottom: 0; border-radius: 90px 90px 0 0; opacity: .95; }
+.rack-bar { position: absolute; left: -10px; right: -10px; top: 0; height: 8px; background: var(--green); } .rack-leg { position: absolute; bottom: -110px; width: 7px; height: 115px; background: var(--green); } .leg-one { left: 12px; transform: rotate(16deg); } .leg-two { right: 12px; transform: rotate(-16deg); }
+.hat { position: absolute; top: 27px; left: 35px; width: 75px; height: 39px; padding-top: 10px; border-radius: 45px 45px 8px 8px; background: var(--blue); color: var(--yellow); text-align: center; font-size: 23px; transform: rotate(-8deg); } .hanger { position: absolute; top: 82px; left: 60px; width: 45px; height: 90px; border: 4px solid var(--pink); border-top: 0; transform: rotate(6deg); }
+.floor { position: absolute; z-index: 2; inset: 72% 0 0; background: linear-gradient(160deg, #a8e6c3, #ffd4ad 42%, #ffbbca); border-top: 10px solid #f8efd8; }
+.desk-scene { position: absolute; z-index: 5; left: 31%; right: 5%; bottom: 7%; height: 55%; min-height: 390px; }
+.desk-back { position: absolute; inset: 0 11% 27% 5%; }
+.desk-shelf { position: absolute; left: 12%; top: 10%; width: 30%; height: 25px; border-bottom: 8px solid #2b6d61; background: #fff0ca; box-shadow: 9px 9px 0 rgba(24,54,65,.12); }
+.book { display: inline-block; width: 18px; height: 60px; margin: -35px 2px 0; vertical-align: bottom; border: 2px solid var(--ink); } .book-pink { background: var(--pink); transform: rotate(-7deg); } .book-blue { background: var(--blue); height: 46px; } .book-yellow { background: var(--yellow); transform: rotate(6deg); height: 55px; } .tiny-plant { float: right; font-size: 32px; color: var(--green); }
+.desk-lamp { position: absolute; left: 54%; top: 1%; width: 10px; height: 125px; background: var(--green); transform: rotate(13deg); transform-origin: bottom; } .desk-lamp:before { content: ""; position: absolute; left: -28px; top: -23px; width: 62px; height: 32px; border-radius: 50% 50% 10px 10px; background: var(--yellow); border: 4px solid var(--green); } .desk-lamp span { position: absolute; bottom: -8px; left: -37px; width: 84px; height: 13px; border-radius: 50%; background: var(--green); }
+.desk-top { position: absolute; left: 0; right: 0; bottom: 22%; height: 46%; background: #f7b47d; border: 5px solid var(--ink); border-radius: 10px; box-shadow: 0 17px 0 rgba(24,54,65,.15); }
+.desk-edge { position: absolute; left: -5px; right: -5px; bottom: -22px; height: 28px; background: #d87e68; border: 5px solid var(--ink); }
+.laptop { position: absolute; left: 20%; top: 15%; width: 35%; } .laptop-screen { height: 130px; padding: 15px; border: 7px solid var(--ink); border-radius: 10px 10px 4px 4px; background: #243d50; color: #a8e8c0; font: 700 16px/1.3 "Baloo 2"; transform: perspective(420px) rotateX(-4deg); } .terminal-dot { display: inline-block; width: 9px; height: 9px; margin-right: 4px; border-radius: 50%; background: var(--pink); } .laptop-base { height: 14px; margin: -2px -14px 0; border: 4px solid var(--ink); border-radius: 0 0 14px 14px; background: #cde7dd; }
+.notebook { position: absolute; right: 22%; top: 25%; width: 17%; aspect-ratio: 1.2; padding: 16px 10px; border: 4px solid var(--ink); background: #ffe98e; color: var(--pink); transform: rotate(-8deg); font: 800 22px "Baloo 2"; } .notebook i { color: var(--blue); }
+.id-card { position: absolute; right: 6%; top: 8%; width: 104px; padding: 12px 8px; background: #d7f3e0; border: 3px solid var(--ink); transform: rotate(8deg); box-shadow: 5px 6px 0 var(--pink); } .id-card span, .id-card small { display: block; font-size: 9px; } .id-card strong { display: block; margin: 10px 0 8px; color: var(--blue); font: 800 28px "Baloo 2"; }
+.instant-photo { position: absolute; left: 6%; bottom: 8%; width: 83px; padding: 7px 7px 11px; background: #fff; color: var(--pink); text-align: center; font: 700 13px "Baloo 2"; transform: rotate(-12deg); box-shadow: 3px 4px 0 rgba(24,54,65,.15); } .instant-photo:before { content: ""; display: block; height: 55px; margin-bottom: 8px; background: linear-gradient(135deg, var(--blue), var(--mint)); }
+.coffee { position: absolute; right: 16%; bottom: 8%; font-size: 38px; transform: rotate(8deg); }
+.chair { position: absolute; z-index: -1; left: 25%; bottom: 2%; width: 190px; height: 220px; border: 15px solid var(--blue); border-bottom-width: 28px; border-radius: 48% 48% 24% 24%; transform: rotate(-5deg); opacity: .95; }
+.character-wrap { position: absolute; right: 14%; bottom: 18%; width: 180px; height: 330px; pointer-events: none; } .character { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: bottom; mix-blend-mode: multiply; filter: saturate(1.1) contrast(1.03); } .character-caption { position: absolute; z-index: 2; top: 0; right: -45px; padding: 5px 9px; background: var(--pink); color: white; font: 700 11px "Baloo 2"; transform: rotate(8deg); }
+.hero-copy { position: absolute; z-index: 7; left: 5%; bottom: 12%; max-width: 350px; } .hero-copy h2 { margin: 0; font: 800 clamp(40px, 5vw, 76px)/.82 "Baloo 2"; color: var(--green); text-shadow: 4px 4px 0 #fff; } .hero-copy h2 em { color: var(--pink); font-style: normal; } .hero-intro { margin: 20px 0 14px; font-weight: 700; line-height: 1.7; } .hero-tags { display: flex; flex-wrap: wrap; gap: 7px; } .hero-tags span { padding: 4px 9px; background: var(--yellow); border: 2px solid var(--ink); font: 800 11px "Baloo 2"; transform: rotate(-3deg); } .hero-tags span:nth-child(2) { background: var(--mint); transform: rotate(3deg); } .hero-tags span:nth-child(3) { background: var(--pink); color: #fff; }
+.room-nav { position: absolute; z-index: 9; top: 4%; right: 4%; display: flex; gap: 8px; padding: 8px; background: rgba(255,252,241,.8); border: 3px solid var(--ink); box-shadow: 5px 6px 0 var(--pink); transform: rotate(2deg); } .nav-item { display: grid; gap: 3px; min-width: 90px; padding: 8px 12px; color: var(--ink); border: 0; background: transparent; cursor: pointer; text-align: left; } .nav-item:hover { background: var(--mint); } .nav-item b { color: var(--pink); font: 800 20px "Baloo 2"; } .nav-item span { font-size: 12px; font-weight: 800; }
+.hotspot { position: absolute; z-index: 9; padding: 5px 9px; color: var(--ink); border: 2px solid var(--ink); cursor: pointer; font: 800 12px "Baloo 2"; box-shadow: 4px 4px 0 var(--ink); transition: transform .2s; } .hotspot:hover { transform: translateY(-5px) rotate(-3deg); } .hotspot span { margin-right: 5px; } .hotspot-about { left: 27%; top: 42%; background: var(--yellow); transform: rotate(-8deg); } .hotspot-experience { right: 9%; top: 42%; background: var(--mint); transform: rotate(6deg); } .hotspot-works { left: 45%; bottom: 26%; background: var(--pink); color: white; transform: rotate(-4deg); } .hotspot-contact { right: 5%; bottom: 11%; background: var(--blue); color: white; transform: rotate(5deg); }
+.scroll-hint { position: absolute; z-index: 9; right: 4%; bottom: 6%; color: var(--green); text-align: right; font: 700 13px/1.2 "Baloo 2"; } .scroll-hint span { color: var(--pink); }
+
+.panel-backdrop { position: fixed; z-index: 12; inset: 0; background: rgba(24,54,65,.36); opacity: 0; pointer-events: none; transition: opacity .3s; } .panel-backdrop.is-open { opacity: 1; pointer-events: auto; }
+.content-panel { position: fixed; z-index: 13; right: 2.5vw; top: 3vh; bottom: 3vh; width: min(650px, 91vw); padding: 45px clamp(24px, 5vw, 60px); overflow: auto; background: var(--paper); border: 4px solid var(--ink); box-shadow: 14px 14px 0 var(--pink); transform: translateX(110%) rotate(3deg); transition: transform .45s cubic-bezier(.2,.85,.25,1); } .content-panel.is-open { transform: translateX(0) rotate(0); } .panel-close { position: absolute; right: 17px; top: 12px; width: 40px; height: 40px; border: 3px solid var(--ink); border-radius: 50%; background: var(--yellow); color: var(--ink); font-size: 25px; line-height: 1; cursor: pointer; }
+.panel-kicker { color: var(--pink); font: 800 14px "Baloo 2"; letter-spacing: .15em; } .panel-title { margin: 4px 0 22px; color: var(--green); font: 800 clamp(38px, 6vw, 70px)/.9 "Baloo 2"; } .panel-title em { color: var(--pink); font-style: normal; } .panel-lead { font-size: 16px; line-height: 1.8; } .panel-section { margin-top: 25px; padding-top: 18px; border-top: 3px dashed var(--mint); } .panel-section h3 { margin: 0 0 9px; color: var(--blue); font: 800 22px "Baloo 2"; } .panel-section p { margin: 0; line-height: 1.8; } .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; } .stat { padding: 12px 8px; background: var(--mint); border: 2px solid var(--ink); text-align: center; } .stat strong { display: block; color: var(--pink); font: 800 25px "Baloo 2"; } .stat small { font-size: 11px; }
+.timeline-item { position: relative; margin: 20px 0; padding-left: 27px; border-left: 3px solid var(--pink); } .timeline-item:before { content: ""; position: absolute; left: -9px; top: 4px; width: 13px; height: 13px; border-radius: 50%; background: var(--yellow); border: 2px solid var(--ink); } .timeline-item h4 { margin: 0; color: var(--green); font-size: 17px; } .timeline-item .date { color: var(--pink); font: 700 13px "Baloo 2"; }
+.work-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; } .work-card { min-height: 130px; padding: 16px; border: 3px solid var(--ink); background: var(--mint); box-shadow: 5px 5px 0 var(--ink); } .work-card:nth-child(2) { background: #ffd6df; } .work-card:nth-child(3) { background: #c8e6ff; } .work-card:nth-child(4) { background: #fff0a1; } .work-card h4 { margin: 0 0 8px; color: var(--green); font: 800 22px "Baloo 2"; } .work-card p { margin: 0; font-size: 13px; line-height: 1.55; }
+.contact-card { padding: 20px; background: var(--blue); color: #fff; border: 4px solid var(--ink); transform: rotate(-2deg); } .contact-card a { color: #fff39c; font-weight: 800; text-decoration: none; } .contact-card p { margin: 8px 0; }
+
+@media (max-width: 850px) {
+  body { overflow: auto; }
+  .room { min-height: 780px; height: auto; }
+  .sky { inset: 0 0 42%; } .floor { inset: 72% 0 0; }
+  .wall-title { top: 10%; left: 5%; font-size: 35px; } .map-card { top: 10%; right: 6%; width: 190px; } .map-card svg { height: 65px; } .photo-polaroid, .tape-note, .clothes-rack { display: none; }
+  .desk-scene { left: 5%; right: 2%; bottom: 13%; height: 48%; min-height: 360px; } .desk-back { inset: 0 2% 28% 0; } .desk-top { height: 43%; } .laptop { left: 17%; width: 45%; } .laptop-screen { height: 95px; font-size: 12px; } .notebook { right: 20%; font-size: 15px; } .character-wrap { right: 2%; bottom: 18%; width: 130px; height: 245px; }
+  .hero-copy { left: 6%; bottom: 4%; max-width: 290px; } .hero-copy h2 { font-size: 43px; } .hero-intro { margin: 10px 0; font-size: 13px; } .room-nav { top: 2%; right: 3%; left: 3%; justify-content: space-between; gap: 0; } .nav-item { min-width: 0; flex: 1; padding: 5px; } .nav-item span { font-size: 10px; } .nav-item b { font-size: 15px; }
+  .hotspot-about { left: 10%; top: 45%; } .hotspot-experience { right: 5%; top: 50%; } .hotspot-works { left: 32%; bottom: 28%; } .hotspot-contact { right: 4%; bottom: 6%; } .scroll-hint { display: none; }
+}
+@media (max-width: 540px) {
+  .loader-window { inset: 17vh 5vw 25vh; } .loader h1 { font-size: 38px; } .loader-sun { right: 5vw; top: 11vh; width: 80px; }
+  .room { min-height: 720px; } .wall-title { top: 11%; } .map-card { width: 158px; padding: 8px; } .map-label { font-size: 9px; } .map-places { font-size: 8px; }
+  .desk-scene { bottom: 16%; min-height: 290px; } .desk-shelf { display: none; } .desk-lamp { display: none; } .chair { left: 18%; width: 120px; height: 140px; } .character-wrap { width: 108px; height: 205px; } .character-caption { right: -20px; font-size: 9px; } .id-card { transform: scale(.75) rotate(8deg); transform-origin: top right; } .instant-photo { transform: scale(.75) rotate(-12deg); transform-origin: bottom left; } .coffee { font-size: 25px; }
+  .hero-copy { bottom: 5%; } .hero-tags span { font-size: 9px; } .hotspot { font-size: 10px; } .work-grid { grid-template-columns: 1fr; } .stat-grid { gap: 5px; } .stat strong { font-size: 20px; }
+}

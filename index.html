@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>欢迎来到蚊小西的世界</title>
+    <meta
+      name="description"
+      content="蚊小西的个人创作房间：内容运营、AIGC 视频、Vibe Coding 与个人作品。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="loader" id="loader">
+      <div class="loader-sun"></div>
+      <div class="loader-window">
+        <div class="loader-cloud cloud-one"></div>
+        <div class="loader-cloud cloud-two"></div>
+        <div class="loader-city"></div>
+        <div class="loader-sill"></div>
+      </div>
+      <div class="loader-copy">
+        <p class="eyebrow">LWX / PERSONAL WORLD</p>
+        <h1>欢迎来到<br /><span>蚊小西的世界</span></h1>
+        <p id="loadingLine">收集灵感中...</p>
+        <div class="loader-progress"><span id="progressBar"></span></div>
+      </div>
+      <div class="loader-sticker sticker-star">✦</div>
+      <div class="loader-sticker sticker-heart">♥</div>
+    </div>
+
+    <main class="room" id="room">
+      <div class="sun-glow"></div>
+      <div class="sky">
+        <div class="sky-cloud cloud-a"></div>
+        <div class="sky-cloud cloud-b"></div>
+        <div class="sky-cloud cloud-c"></div>
+        <div class="cityline"></div>
+        <div class="window-frame window-frame-left"></div>
+        <div class="window-frame window-frame-right"></div>
+        <div class="window-sill"></div>
+      </div>
+
+      <div class="wall">
+        <div class="wall-title">HELLO<br /><span>WORLD!</span></div>
+        <div class="map-card">
+          <span class="map-label">MY LITTLE JOURNEY</span>
+          <svg viewBox="0 0 340 160" role="img" aria-label="旅途地图">
+            <path d="M28 110 C72 28, 122 125, 174 59 S260 37, 315 92" />
+            <circle cx="28" cy="110" r="7" />
+            <circle cx="174" cy="59" r="7" />
+            <circle cx="315" cy="92" r="7" />
+          </svg>
+          <div class="map-places"><span>深圳</span><span>出发</span><span>下一站</span></div>
+        </div>
+        <div class="tape-note note-one">today is a good day<br />to make something</div>
+        <div class="tape-note note-two">GO<br />EXPLORE!</div>
+        <div class="photo-polaroid polaroid-one"><div>✦<br />TRAVEL<br />MEMORY</div></div>
+        <div class="photo-polaroid polaroid-two"><div>AI<br />MADE<br />ME SMILE</div></div>
+        <div class="clothes-rack">
+          <div class="rack-bar"></div>
+          <div class="rack-leg leg-one"></div>
+          <div class="rack-leg leg-two"></div>
+          <div class="hat">✿</div>
+          <div class="hanger"></div>
+        </div>
+      </div>
+
+      <div class="floor"></div>
+
+      <section class="desk-scene">
+        <div class="desk-back">
+          <div class="desk-lamp"><span></span></div>
+          <div class="desk-shelf">
+            <span class="book book-pink"></span>
+            <span class="book book-blue"></span>
+            <span class="book book-yellow"></span>
+            <span class="tiny-plant">✿</span>
+          </div>
+        </div>
+        <div class="desk-top">
+          <div class="laptop">
+            <div class="laptop-screen">
+              <span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span>
+              <p>&gt; create<br />&nbsp; something<br />&nbsp; delightful_</p>
+            </div>
+            <div class="laptop-base"></div>
+          </div>
+          <div class="notebook"><span>IDEAS</span><i>✦</i></div>
+          <div class="id-card"><span>CREATOR</span><strong>LWX</strong><small>深圳大学 · 英语</small></div>
+          <div class="instant-photo">HI!<br /><b>蚊小西</b></div>
+          <div class="coffee">☕</div>
+          <div class="desk-edge"></div>
+        </div>
+        <div class="chair"></div>
+        <div class="character-wrap">
+          <div class="character-caption">你的创作分身</div>
+          <img src="public/assets/lwx-character.png" alt="蚊小西的动漫人物分身" class="character" />
+        </div>
+      </section>
+
+      <div class="hero-copy">
+        <p class="eyebrow">SUNNY CREATOR / 2026</p>
+        <h2>嗨，我是<br /><em>蚊小西</em></h2>
+        <p class="hero-intro">持续探索世界的高能量小女孩<br />也是正在学习 AI 的初级魔女。</p>
+        <div class="hero-tags"><span>CONTENT</span><span>AIGC</span><span>VIBE CODING</span></div>
+      </div>
+
+      <nav class="room-nav" aria-label="页面导航">
+        <button class="nav-item" data-panel="about"><b>01</b><span>认识我</span></button>
+        <button class="nav-item" data-panel="experience"><b>02</b><span>实习经历</span></button>
+        <button class="nav-item" data-panel="works"><b>03</b><span>我的作品</span></button>
+        <button class="nav-item" data-panel="contact"><b>04</b><span>联系我</span></button>
+      </nav>
+
+      <div class="hotspot hotspot-about" data-panel="about"><span>拍立得</span>✦</div>
+      <div class="hotspot hotspot-experience" data-panel="experience"><span>工牌</span>↗</div>
+      <div class="hotspot hotspot-works" data-panel="works"><span>打开电脑</span>⌁</div>
+      <div class="hotspot hotspot-contact" data-panel="contact"><span>给我留言</span>♥</div>
+      <div class="scroll-hint">点击房间里的物件<br /><span>进入我的小宇宙</span></div>
+    </main>
+
+    <div class="panel-backdrop" id="panelBackdrop"></div>
+    <section class="content-panel" id="contentPanel" aria-hidden="true">
+      <button class="panel-close" id="panelClose" aria-label="关闭">×</button>
+      <div id="panelContent"></div>
+    </section>
+
+    <script src="script.js"></script>
+  </body>
+</html>
