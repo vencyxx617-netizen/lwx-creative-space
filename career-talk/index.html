@@ -1,0 +1,2401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>先做面包，再等香味出现 · 新生职业生涯分享</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ============ 主题色(默认:🖋 墨水经典) ============
+       切换主题:从 references/themes.md 复制对应的 :root 块
+       整体替换这几行(--ink / --ink-rgb / --paper / --paper-rgb)
+       其他地方散落的 rgba() 都走 var(--ink-rgb) / var(--paper-rgb),无需逐处改 */
+    --ink:#321d12;
+    --ink-rgb:50,29,18;
+    --paper:#f5cf69;
+    --paper-rgb:245,207,105;
+    --paper-tint:#e8b94d;
+    --ink-tint:#4b2b19;
+    --toast:#b76528;
+    --toast-rgb:183,101,40;
+
+    /* ============ 字体(跨主题固定) ============ */
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+    --serif-en:"Playfair Display","Source Serif 4",Georgia,serif;
+    --serif-body-en:"Source Serif 4",Georgia,serif;
+    --serif-zh:"Noto Serif SC",source-han-serif-sc,serif;
+    --sans-zh:"Noto Sans SC",source-han-sans-sc,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--sans-zh);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+
+  /* ============ WebGL 双背景 ============ */
+  canvas.bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block;opacity:0!important;transition:opacity 1.2s ease}
+  canvas#bg-light{opacity:0}
+  canvas#bg-dark{opacity:1}
+  body.light-bg canvas#bg-light{opacity:1}
+  body.light-bg canvas#bg-dark{opacity:0}
+  body.low-power canvas.bg{display:none!important}
+
+  /* ============ Deck 容器 + 翻页 ============ */
+  /* width: NSLIDES * 100vw，会在 JS 里动态矫正 */
+  #deck{position:fixed;inset:0;width:10000vw;height:100vh;display:flex;flex-wrap:nowrap;transition:transform .9s cubic-bezier(.77,0,.175,1);z-index:10;will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;padding:6vh 6vw 10vh 6vw;display:flex;flex-direction:column;overflow:hidden}
+  .slide.light{
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 14% 18%,rgba(255,245,190,.24) 0 1px,transparent 2px),
+      radial-gradient(circle at 78% 72%,rgba(var(--toast-rgb),.1) 0 1px,transparent 2px),
+      var(--paper);
+    background-size:31px 31px,43px 43px,auto;
+  }
+  .slide.dark{
+    color:#f8d978;
+    background:
+      radial-gradient(circle at 22% 30%,rgba(255,224,135,.08) 0 1px,transparent 2px),
+      var(--ink);
+    background-size:37px 37px,auto;
+  }
+
+  /* 默认页：遮罩较厚，保证文字可读 */
+  .slide::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;transition:background .7s ease}
+  .slide.light::before{background:rgba(var(--paper-rgb),.08);backdrop-filter:none}
+  .slide.dark::before{background:rgba(var(--ink-rgb),.08);backdrop-filter:none}
+  /* Hero 页：遮罩大幅降低，让 WebGL 背景明显透出 */
+  .slide.hero.light::before{background:rgba(var(--paper-rgb),.04);backdrop-filter:none}
+  .slide.hero.dark::before{background:rgba(var(--ink-rgb),.04);backdrop-filter:none}
+  /* Hero 页顶底微弱渐隐，保证 chrome/foot 区域可读 */
+  .slide.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none}
+  .slide.hero.light::after{background:linear-gradient(180deg,rgba(var(--paper-rgb),.28) 0%,rgba(var(--paper-rgb),0) 14%,rgba(var(--paper-rgb),0) 86%,rgba(var(--paper-rgb),.28) 100%)}
+  .slide.hero.dark::after{background:linear-gradient(180deg,rgba(var(--ink-rgb),.32) 0%,rgba(var(--ink-rgb),0) 14%,rgba(var(--ink-rgb),0) 86%,rgba(var(--ink-rgb),.32) 100%)}
+
+  /* ============ Magazine chrome：顶部 meta + 底部 foot ============
+     （v1 布局 + v2 字号在此合并为唯一定义，不要在别处二次定义） */
+  .chrome{display:flex;justify-content:space-between;align-items:flex-start;font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.2em;text-transform:uppercase;opacity:.62}
+  .chrome .left,.chrome .right{display:flex;gap:2.4em;align-items:center}
+  .chrome .sep{width:40px;height:1px;background:currentColor;opacity:.4}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-family:var(--mono);font-size:max(11px,.78vw);letter-spacing:.18em;text-transform:uppercase;opacity:.5}
+  .foot .title{font-family:var(--serif-zh);font-weight:400;letter-spacing:.05em;text-transform:none;opacity:.75;font-size:13px}
+
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;padding:6px 14px;border:1px solid currentColor;opacity:.85}
+  .rule{width:100%;height:1px;background:currentColor;opacity:.25;margin:3vh 0}
+  .rule.v{width:1px;height:100%;margin:0}
+
+  /* ============ 字体规则 ============
+     · 衬线（Noto Serif SC / Playfair）：大标题、重点金句、数字
+     · 非衬线（Noto Sans SC）：正文描述、body、补充说明
+     · 等宽（IBM Plex Mono）：kicker、meta 小标签、foot 右侧
+  */
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.6;margin-bottom:2.6vh}
+  .display{font-family:var(--serif-en);font-weight:700;font-size:11vw;line-height:.92;letter-spacing:-.025em}
+  .display-zh{font-family:var(--serif-zh);font-weight:700;font-size:7.8vw;line-height:1.04;letter-spacing:-.005em}
+  .h1-zh{font-family:var(--serif-zh);font-weight:700;font-size:4.6vw;line-height:1.12;letter-spacing:-.005em}
+  .h2-zh{font-family:var(--serif-zh);font-weight:600;font-size:3.2vw;line-height:1.2;letter-spacing:0}
+  .h3-zh{font-family:var(--serif-zh);font-weight:500;font-size:1.9vw;line-height:1.35}
+  .body-zh{font-family:var(--sans-zh);font-weight:400;font-size:max(15px,1.22vw);line-height:1.75;opacity:.82;letter-spacing:.01em}
+  .body-serif{font-family:var(--serif-zh);font-weight:400;font-size:max(15px,1.3vw);line-height:1.65;opacity:.88}
+  .lead{font-family:var(--serif-zh);font-weight:400;font-size:1.75vw;line-height:1.5;opacity:.86}
+  .meta{font-family:var(--mono);font-size:max(11px,.88vw);letter-spacing:.16em;text-transform:uppercase;opacity:.6}
+  .big-num{font-family:var(--serif-en);font-weight:800;font-size:10vw;line-height:.85;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .mid-num{font-family:var(--serif-en);font-weight:700;font-size:5.5vw;line-height:.88;letter-spacing:-.02em;font-feature-settings:"tnum"}
+  .ghost{font-family:var(--serif-en);font-weight:900;font-size:34vw;line-height:.8;opacity:.06;letter-spacing:-.04em;position:absolute;font-feature-settings:"tnum"}
+  em{font-style:italic;font-family:var(--serif-en)}
+  .en{font-family:var(--serif-en);font-style:italic;font-weight:500}
+
+  /* ============ 布局工具 ============ */
+  .col{display:flex;flex-direction:column;gap:2.4vh}
+  .row{display:flex;align-items:center;gap:3vw}
+  .grid-6{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:4vw 6vw;flex:1;align-content:center;padding:2vh 0}
+  .grid-9{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3vh 4vw;flex:1;align-content:center}
+  .grid-4{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:4vh 6vw;flex:1;align-content:center}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:4vw;flex:1;align-content:center}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:4vw;flex:1;align-items:center}
+  .split-55{display:grid;grid-template-columns:55fr 45fr;gap:5vw;flex:1;align-items:stretch}
+  .fill{flex:1}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .bottom-left{position:absolute;left:6vw;bottom:9vh;max-width:50vw}
+  .bottom-right{position:absolute;right:6vw;bottom:9vh;max-width:50vw;text-align:right}
+  .top-right{position:absolute;right:6vw;top:6vh;text-align:right}
+
+  /* ============ Stat（数字矩阵） ============ */
+  .stat{display:flex;flex-direction:column;gap:1vh;align-items:flex-start}
+  .stat .n{font-family:var(--serif-en);font-weight:800;font-size:8vw;line-height:.88;letter-spacing:-.03em;font-feature-settings:"tnum"}
+  .stat .l{font-family:var(--sans-zh);font-size:max(13px,1.05vw);opacity:.7;margin-top:1vh;font-weight:400;line-height:1.5}
+  .stat .m{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.5;margin-bottom:.2vh}
+
+  /* ============ Callout（引用框） ============ */
+  .callout{padding:3vh 2.4vw;border-left:3px solid currentColor;position:relative;font-family:var(--serif-zh);font-size:max(15px,1.2vw);line-height:1.55;opacity:.92}
+  .slide.light .callout{background:rgba(var(--ink-rgb),.05)}
+  .slide.dark .callout{background:rgba(var(--paper-rgb),.06)}
+  .callout .cite{display:block;margin-top:1.6vh;font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6}
+  .callout .q-big{font-family:var(--serif-zh);font-weight:600;font-size:max(17px,1.6vw);line-height:1.42}
+
+  /* ============ Platform（平台卡） ============ */
+  .plat{display:flex;flex-direction:column;justify-content:flex-end;padding:2vh 0;border-top:1px solid currentColor;border-color:rgba(127,127,127,.35)}
+  .plat .name{font-family:var(--serif-zh);font-weight:700;font-size:1.8vw;margin-bottom:.6vh}
+  .plat .nb{font-family:var(--serif-en);font-weight:700;font-size:3.2vw;letter-spacing:-.02em;line-height:1;font-feature-settings:"tnum"}
+  .plat .sub{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.55;margin-top:.6vh}
+  .plat .fill{font-family:var(--sans-zh);font-weight:300;font-size:2.4vw;opacity:.28;letter-spacing:-.01em;line-height:1}
+
+  /* ============ Rowline（表格行） ============ */
+  .rowline{display:grid;grid-template-columns:1fr 2fr 1fr;gap:2vw;padding:2.2vh 0;border-top:1px solid currentColor;align-items:center;border-color:rgba(127,127,127,.25)}
+  .rowline:last-child{border-bottom:1px solid currentColor;border-color:rgba(127,127,127,.25)}
+  .rowline .k{font-family:var(--serif-zh);font-weight:700;font-size:1.7vw}
+  .rowline .v{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.2vw);opacity:.85;line-height:1.55}
+  .rowline .m{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.6;justify-self:end}
+
+  /* ============ Pillar（支柱卡片） ============ */
+  .pillar{display:flex;flex-direction:column;gap:1.8vh}
+  .pillar .ic{font-family:var(--serif-en);font-style:italic;font-size:2.6vw;opacity:.45;font-weight:400}
+  .pillar .ic svg{width:2.8vw;height:2.8vw;stroke-width:1.2;opacity:.7}
+  .pillar .t{font-family:var(--serif-zh);font-weight:700;font-size:2.4vw;line-height:1.1}
+  .pillar .d{font-family:var(--sans-zh);font-weight:400;font-size:max(14px,1.1vw);opacity:.76;line-height:1.6}
+
+  /* ============ Signature / Highlight ============ */
+  .sign{font-family:var(--serif-en);font-style:italic;font-weight:500;font-size:2vw;opacity:.7}
+  .hi{position:relative;display:inline}
+  .slide.dark .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--paper-rgb),.15);z-index:-1}
+  .slide.light .hi::after{content:"";position:absolute;left:-.1em;right:-.1em;bottom:-.05em;height:.28em;background:rgba(var(--ink-rgb),.08);z-index:-1}
+
+  /* ============ Icons（Lucide via CDN） ============ */
+  .ico{width:1em;height:1em;display:inline-block;vertical-align:-.12em;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+  .ico-lg,.ico-md,.ico-sm{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .ico-lg{width:2.6vw;height:2.6vw;stroke-width:1.2;display:inline-block}
+  .ico-md{width:1.8vw;height:1.8vw;stroke-width:1.3;display:inline-block;vertical-align:-.4em}
+  .ico-sm{width:1.1vw;height:1.1vw;stroke-width:1.4;display:inline-block;vertical-align:-.15em;opacity:.7}
+
+  /* ============ 图片占位（虚线框，提示设计师位置） ============ */
+  .img-slot{border:1.5px dashed rgba(127,127,127,.4);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1vh;padding:2vh 2vw;font-family:var(--mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase;opacity:.55;position:relative;aspect-ratio:16/9;width:100%;max-height:56vh;margin-inline:auto;box-sizing:border-box}
+  .img-slot::before{content:"";position:absolute;inset:8px;border:1px solid currentColor;opacity:.2}
+  .img-slot .plus{font-size:2vw;font-weight:300;opacity:.5;letter-spacing:0}
+  .img-slot .label{position:relative;z-index:2;text-align:center}
+  .img-slot.r-4x3{aspect-ratio:4/3}
+  .img-slot.r-3x2{aspect-ratio:3/2}
+  .img-slot.r-1x1{aspect-ratio:1/1}
+
+  /* ============ 图片实填框（关键：固定高度 + 只裁底部） ============
+     重要约束：高度用内联 height:Nvh 精确控制，不要用 aspect-ratio（会撑破布局）
+     object-position:top center 保证严禁裁剪顶部和左右，只裁剪底部
+  */
+  .frame-img{overflow:hidden;position:relative;background:rgba(0,0,0,.04);box-sizing:border-box;width:100%;border-radius:4px}
+  .slide.dark .frame-img{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+  .frame-img > img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .frame-img.fit-contain > img{object-fit:contain;object-position:center center}
+  .frame-img.r-16x9{aspect-ratio:16/9;max-height:64vh}
+  .frame-img.r-16x10{aspect-ratio:16/10;max-height:56vh}
+  .frame-img.r-4x3{aspect-ratio:4/3;max-height:56vh}
+  .frame-img.r-3x2{aspect-ratio:3/2;max-height:46vh}
+  .frame-img.r-3x4{aspect-ratio:3/4;max-height:60vh}
+  .frame-img.r-1x1{aspect-ratio:1/1;max-height:50vh}
+  .frame-img.h-16{height:16vh}
+  .frame-img.h-18{height:18vh}
+  .frame-img.h-22{height:22vh}
+  .frame-img.h-26{height:26vh}
+  .frame-img.h-28{height:28vh}
+  .frame-cap{display:flex;justify-content:space-between;align-items:baseline;gap:1vw;margin-top:.8vh;font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;opacity:.72}
+  .frame-cap .pf{font-family:var(--serif-zh);font-weight:600;font-size:max(13px,1vw);letter-spacing:.04em;text-transform:none;opacity:.94}
+  .frame-cap .nb{font-family:var(--serif-en);font-style:italic;font-size:max(15px,1.2vw);letter-spacing:.02em;text-transform:none;opacity:.88}
+  .frame-cap .idx{font-family:var(--mono);opacity:.5}
+  figure.tile{display:flex;flex-direction:column;margin:0;min-width:0}
+  figure.tile > .frame-img{flex:0 0 auto}
+
+  /* ============ 导航 ============ */
+  #nav{position:fixed;left:50%;bottom:2.6vh;transform:translateX(-50%);z-index:30;display:flex;gap:10px;padding:8px 14px;border-radius:999px;background:rgba(0,0,0,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #nav .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.3);cursor:pointer;transition:all .3s ease;border:0;padding:0}
+  #nav .dot:hover{background:rgba(255,255,255,.5);transform:scale(1.15)}
+  #nav .dot.active{background:rgba(255,255,255,.95);width:22px;border-radius:999px}
+  body.light-bg #nav{background:rgba(255,255,255,.25)}
+  body.light-bg #nav .dot{background:rgba(var(--ink-rgb),.25)}
+  body.light-bg #nav .dot.active{background:rgba(var(--ink-rgb),.9)}
+  #hint{position:fixed;bottom:3vh;right:3vw;z-index:30;display:flex;align-items:center;gap:.65em;font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.4;mix-blend-mode:difference;color:#aaa}
+  #hint button{all:unset;display:inline-flex;align-items:center;gap:.45em;cursor:pointer;color:inherit;white-space:nowrap}
+  #hint button:hover,#hint button:focus-visible{opacity:1;text-decoration:underline;text-underline-offset:.35em}
+  #hint .ppt-key{padding:.16em .38em;border:1px solid currentColor;border-radius:3px;letter-spacing:.08em}
+  #hint .ppt-sep{opacity:.55}
+  body.low-power #hint{opacity:.72;color:var(--paper);mix-blend-mode:normal}
+  body.light-bg.low-power #hint{color:var(--ink)}
+
+  /* ============ 演讲者模式 ============ */
+  body.ppt-audience #hint,body.ppt-audience #nav,
+  body.ppt-preview #hint,body.ppt-preview #nav{display:none!important}
+  body.ppt-audience{cursor:none}
+  body.ppt-preview{pointer-events:none}body.ppt-preview #deck{transition:none!important}
+  body.ppt-presenter>#deck,body.ppt-presenter>#nav,body.ppt-presenter>#hint,
+  body.ppt-presenter>.bg{visibility:hidden}
+  #ppt-presenter{position:fixed;inset:0;z-index:90;display:none;min-width:0;min-height:0;overflow:hidden;background:#101216;color:#f5f6f7;font-family:Inter,"Noto Sans SC",sans-serif}
+  body.ppt-presenter #ppt-presenter{display:grid;grid-template-rows:auto 1fr auto}
+  .ppt-presenter-top{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:18px 24px;border-bottom:1px solid #2b2e35;background:#15181d}
+  .ppt-presenter-brand{font-weight:650;letter-spacing:.02em}.ppt-presenter-meta{display:flex;align-items:center;gap:12px;color:#aeb4be;font-size:14px}
+  .ppt-sync{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid #363a43;border-radius:999px;color:#d2d6dc;background:#1b1e24}
+  .ppt-sync::before{content:"";width:8px;height:8px;border-radius:50%;background:#818894}
+  .ppt-sync[data-state="synced"]::before{background:#72df99;box-shadow:0 0 0 4px rgba(114,223,153,.12)}
+  .ppt-sync[data-state="connecting"]::before,.ppt-sync[data-state="frozen"]::before{background:#f0c766}.ppt-sync[data-state="unsynced"]::before,.ppt-sync[data-state="blocked"]::before{background:#ff9e64}.ppt-sync[data-state="disconnected"]::before{background:#ff6b72}
+  .ppt-ui-btn{appearance:none;border:1px solid #3a3e48;background:#20242a;color:#f6f7f8;border-radius:8px;padding:9px 13px;font:600 14px/1 Inter,"Noto Sans SC",sans-serif;cursor:pointer}
+  .ppt-ui-btn:hover{background:#2a2f37;border-color:#525864}.ppt-ui-btn:focus-visible{outline:2px solid #84a8ff;outline-offset:2px}.ppt-ui-btn:disabled{opacity:.28;cursor:not-allowed}
+  .ppt-presenter-main{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(300px,.75fr);gap:18px;min-height:0;padding:18px 24px}
+  .ppt-preview-stack{position:relative;display:grid;grid-template-rows:minmax(0,1fr) clamp(132px,22vh,210px);gap:16px;min-width:0;min-height:0}
+  .ppt-stage-card,.ppt-notes-card,.ppt-presenter-overview{background:#171a20;border:1px solid #2b2f37;border-radius:12px;overflow:hidden}
+  .ppt-stage-card{display:grid;grid-template-rows:auto minmax(0,1fr);min-width:0;min-height:0}
+  .ppt-stage-label{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;color:#aeb4be;font-size:13px;border-bottom:1px solid #292d34}
+  .ppt-annotation-tools{display:flex;align-items:center;gap:5px;margin-left:auto}.ppt-annotation-tools .ppt-ui-btn{padding:6px 9px;font-size:12px}.ppt-annotation-tools .ppt-ui-btn.is-active{color:#111318;background:#ff5b63;border-color:#ff5b63}.ppt-annotation-tools .ppt-grid-btn.is-active{color:#111318;background:#edf1f5;border-color:#edf1f5}.ppt-annotation-tools .ppt-clear-btn{min-width:0}.ppt-grid-btn{display:inline-flex;align-items:center;gap:6px}.ppt-grid-icon{display:grid;grid-template-columns:repeat(2,4px);gap:2px}.ppt-grid-icon i{width:4px;height:4px;background:currentColor}
+  .ppt-frame-viewport{position:relative;display:grid;place-items:center;min-width:0;min-height:0;overflow:hidden;background:#08090b}
+  .ppt-frame{display:block;width:0;height:0;max-width:100%;max-height:100%;aspect-ratio:16/9;border:0;background:#08090b}.ppt-next-frame{opacity:.86}#ppt-next-card.is-end .ppt-frame{visibility:hidden}#ppt-next-card.is-end .ppt-frame-viewport::after{content:"演示结束";position:absolute;color:#727a86;font:650 14px/1 Inter,"Noto Sans SC",sans-serif;letter-spacing:.08em}
+  .ppt-annotation-layer{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:4;width:0;height:0;pointer-events:none;touch-action:none}.ppt-annotation-layer.is-active{pointer-events:auto;cursor:crosshair}
+  #ppt-audience-ink{position:fixed;inset:0;z-index:70;width:100vw;height:100vh;pointer-events:none}#ppt-audience-cover{position:fixed;inset:0;z-index:80;display:none;pointer-events:none}#ppt-audience-cover.is-ended{display:grid!important;place-items:center;background:#101216!important;color:#f5f6f7;font:650 clamp(24px,3vw,46px)/1.2 Inter,"Noto Sans SC",sans-serif;letter-spacing:.08em}
+  .ppt-preview-stack.is-overview>.ppt-stage-card{display:none}.ppt-presenter-overview{grid-row:1/-1;display:grid;grid-template-rows:auto minmax(0,1fr);min-width:0;min-height:0}.ppt-presenter-overview[hidden]{display:none}.ppt-overview-head{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-bottom:1px solid #292d34}.ppt-overview-head strong{font-size:15px}.ppt-overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;align-content:start;overflow:auto;padding:14px}.ppt-overview-page{appearance:none;min-height:112px;display:grid;grid-template-rows:auto 1fr auto;gap:12px;padding:13px;border:1px solid #343943;border-radius:10px;background:#111318;color:#eef1f4;text-align:left;cursor:pointer}.ppt-overview-page:hover{background:#1d2128;border-color:#636b78}.ppt-overview-page.is-current{border-color:#84a8ff;box-shadow:inset 0 0 0 1px #84a8ff}.ppt-overview-page-no{color:#8f97a3;font:600 12px/1 var(--mono,monospace)}.ppt-overview-page-title{font-size:14px;font-weight:650;line-height:1.35}.ppt-overview-page-meta{display:flex;justify-content:space-between;gap:8px;color:#7f8793;font-size:11px}
+  .ppt-notes-card{display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0}.ppt-notes-head{padding:16px 18px;border-bottom:1px solid #292d34}.ppt-notes-label{margin-bottom:6px;color:#848c98;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}.ppt-notes-title{font-size:21px;font-weight:680;line-height:1.32}.ppt-purpose-block{margin-top:14px;padding:11px 12px;border-left:3px solid #84a8ff;background:#111318}.ppt-purpose-copy{color:#c9ced6;font-size:14px;line-height:1.55}.ppt-notes-draft-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-top:15px;padding-top:13px;border-top:1px solid #2d3139}.ppt-notes-draft-head .ppt-notes-label{margin:0 0 4px}.ppt-note-meta{color:#8f97a3;font-size:12px}
+  .ppt-notes-tools{display:flex;align-items:center;gap:6px}.ppt-notes-tools .ppt-ui-btn{padding:7px 9px}.ppt-note-editor{width:100%;height:100%;min-height:0;resize:none;border:0;outline:0;background:#171a20;color:#edf0f3;padding:18px;font:400 var(--ppt-note-size,17px)/1.72 Inter,"Noto Sans SC",sans-serif}.ppt-note-editor:focus{box-shadow:inset 0 0 0 1px #3d4654}
+  .ppt-saved{color:#72df99;white-space:nowrap}.ppt-presenter-bottom{display:grid;grid-template-columns:minmax(330px,1fr) auto minmax(110px,1fr);align-items:center;gap:20px;padding:12px 24px;border-top:1px solid #2b2e35;background:#15181d}
+  .ppt-time-dashboard{display:flex;align-items:stretch;min-width:0}.ppt-time-stat{min-width:90px;display:grid;align-content:center;gap:4px;padding:0 16px}.ppt-time-stat:first-child{padding-left:0}.ppt-time-stat+.ppt-time-stat{border-left:1px solid #343943}.ppt-time-label{color:#89919d;font-size:11px;font-weight:700;letter-spacing:.1em}.ppt-time-value{color:#f7f8fa;font:650 23px/1 var(--mono,monospace);font-variant-numeric:tabular-nums}.ppt-time-hint{color:#747c88;font-size:11px;white-space:nowrap}.ppt-time-stat.is-over .ppt-time-label,.ppt-time-stat.is-over .ppt-time-value{color:#ff8a90}.ppt-time-stat.is-remaining .ppt-time-value{color:#72df99}
+  .ppt-control-stack{display:grid;gap:7px;justify-items:center}.ppt-controls,.ppt-session-actions{display:flex;align-items:center;justify-content:center;gap:7px}.ppt-controls .ppt-ui-btn,.ppt-session-actions .ppt-ui-btn{min-width:68px}.ppt-session-actions{padding-top:7px;border-top:1px solid #343943}.ppt-rehearsal-on{color:#ff8a90}.ppt-page-state{text-align:right}.ppt-page-state strong{display:block;color:#fff;font-size:17px;margin-bottom:5px}.ppt-page-state span{color:#8f97a3;font:600 13px/1 var(--mono,monospace)}.ppt-auto-state{display:inline-flex;align-items:center;gap:6px;border-radius:999px}.ppt-auto-state.is-on{color:#72df99;border-color:rgba(114,223,153,.45);background:rgba(114,223,153,.08)}.ppt-auto-state.is-paused{color:#f0c766;border-color:rgba(240,199,102,.42);background:rgba(240,199,102,.08)}
+  #ppt-presenter[data-layout="slides"] .ppt-presenter-main{grid-template-columns:minmax(0,2.15fr) minmax(260px,.58fr)}#ppt-presenter[data-layout="notes"] .ppt-presenter-main{grid-template-columns:minmax(0,1.15fr) minmax(380px,1fr)}
+  .ppt-dialog{position:fixed;inset:0;z-index:130;display:grid;place-items:center;padding:24px;background:rgba(4,6,9,.72);backdrop-filter:blur(10px)}.ppt-dialog[hidden]{display:none}.ppt-dialog-panel{width:min(720px,calc(100vw - 48px));max-height:min(760px,calc(100vh - 48px));display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden;border:1px solid #343943;border-radius:14px;background:#171a20;box-shadow:0 24px 80px rgba(0,0,0,.45)}.ppt-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 18px;border-bottom:1px solid #2b2f37}.ppt-dialog-title{font-size:20px;font-weight:700}.ppt-dialog-body{overflow:auto;padding:18px;color:#d8dce2;font-size:14px;line-height:1.6}.ppt-dialog-section+.ppt-dialog-section{margin-top:22px}.ppt-dialog-section h3{margin:0 0 10px;color:#fff;font-size:15px}.ppt-dialog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.ppt-dialog-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid #282c33}.ppt-dialog-row:last-child{border-bottom:0}.ppt-field{display:grid;gap:6px}.ppt-field label{color:#aeb4be;font-size:12px}.ppt-field input{width:100%;border:1px solid #3a3e48;border-radius:8px;background:#101216;color:#fff;padding:9px 10px;font:600 14px Inter,sans-serif}.ppt-check{display:flex;align-items:flex-start;gap:10px}.ppt-check-dot{width:9px;height:9px;margin-top:7px;border-radius:50%;background:#ff6b72}.ppt-check.is-ok .ppt-check-dot{background:#72df99}.ppt-check.is-warn .ppt-check-dot{background:#f0c766}.ppt-summary{width:100%;border-collapse:collapse;font-size:13px}.ppt-summary th,.ppt-summary td{padding:9px 8px;border-bottom:1px solid #2b2f37;text-align:left}.ppt-summary th{color:#9fa6b1;font-weight:600}.ppt-summary td:last-child,.ppt-summary th:last-child{text-align:right}.ppt-muted{color:#8f96a1}.ppt-shortcuts{display:grid;grid-template-columns:auto 1fr;gap:8px 14px}.ppt-shortcuts kbd{min-width:44px;padding:4px 7px;border:1px solid #3a3e48;border-radius:6px;background:#101216;color:#fff;text-align:center;font:600 12px var(--mono,monospace)}
+  .ppt-settings-card{padding:15px;border:1px solid #30353e;border-radius:12px;background:#12151a}.ppt-settings-card+.ppt-settings-card{margin-top:12px}.ppt-settings-card h3{margin:0 0 3px}.ppt-settings-copy{margin:0 0 14px;color:#858d99;font-size:12px}.ppt-switch-row{display:flex;align-items:center;justify-content:space-between;gap:18px;cursor:pointer}.ppt-switch-row input{position:absolute;opacity:0;pointer-events:none}.ppt-switch{width:48px;height:28px;flex:0 0 auto;padding:3px;border:1px solid #434955;border-radius:999px;background:#252a31;transition:.2s}.ppt-switch::after{content:"";display:block;width:20px;height:20px;border-radius:50%;background:#a8afb9;transition:.2s}.ppt-switch-row input:checked+.ppt-switch{border-color:#72df99;background:rgba(114,223,153,.16)}.ppt-switch-row input:checked+.ppt-switch::after{transform:translateX(20px);background:#72df99}.ppt-stepper{display:grid;grid-template-columns:38px minmax(72px,1fr) auto 38px;align-items:center;margin-top:14px;border:1px solid #363c46;border-radius:10px;background:#0d0f13;overflow:hidden}.ppt-stepper button{height:42px;border:0;background:#20242a;color:#fff;font-size:19px;cursor:pointer}.ppt-stepper button:hover{background:#2c323b}.ppt-stepper input{width:100%;height:42px;border:0!important;border-radius:0!important;background:transparent!important;text-align:center;font:650 16px var(--mono,monospace)!important;-moz-appearance:textfield}.ppt-stepper input::-webkit-inner-spin-button,.ppt-stepper input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.ppt-stepper-unit{color:#858d99;font-size:12px}.ppt-segmented{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.ppt-segmented.screen{grid-template-columns:repeat(4,1fr)}.ppt-segmented .ppt-ui-btn{min-width:0}.ppt-settings-save{width:100%;margin-top:14px;background:#edf1f5;color:#111318;border-color:#edf1f5}.ppt-settings-save:hover{background:#fff}.ppt-settings-save+.ppt-settings-copy{margin:10px 0 0}
+  #overview{z-index:110!important}
+  @media(max-width:1200px){.ppt-presenter-main{grid-template-columns:minmax(0,1.55fr) minmax(280px,.72fr)}}
+  @media(max-width:1100px){.ppt-presenter-bottom{grid-template-columns:minmax(292px,1fr) auto minmax(86px,.6fr);gap:12px}.ppt-time-stat{min-width:82px;padding:0 11px}.ppt-time-value{font-size:20px}.ppt-controls .ppt-ui-btn,.ppt-session-actions .ppt-ui-btn{min-width:60px;padding:8px 9px}}
+  @media(max-width:900px){.ppt-presenter-top{padding:12px 16px;flex-wrap:wrap}.ppt-presenter-top .ppt-presenter-meta{gap:6px}.ppt-presenter-top .ppt-ui-btn{padding:8px 9px}.ppt-presenter-main,#ppt-presenter[data-layout="slides"] .ppt-presenter-main,#ppt-presenter[data-layout="notes"] .ppt-presenter-main{grid-template-columns:minmax(0,1.45fr) minmax(250px,.72fr);gap:12px;padding:12px 16px}.ppt-preview-stack{gap:12px;grid-template-rows:minmax(0,1fr) clamp(104px,20vh,150px)}.ppt-saved{display:none}.ppt-presenter-bottom{grid-template-columns:minmax(270px,1fr) auto 74px;gap:8px;padding:9px 16px}.ppt-time-stat{min-width:0;padding:0 9px}.ppt-time-value{font-size:18px}.ppt-time-hint{max-width:78px;overflow:hidden;text-overflow:ellipsis}.ppt-controls,.ppt-session-actions{gap:5px}.ppt-controls .ppt-ui-btn,.ppt-session-actions .ppt-ui-btn{min-width:52px;padding:7px 8px;font-size:12px}.ppt-page-state strong{font-size:14px}.ppt-dialog-grid{grid-template-columns:1fr}.ppt-segmented.screen{grid-template-columns:repeat(2,1fr)}}
+  @media(max-height:700px){.ppt-presenter-top{padding-top:10px;padding-bottom:10px}.ppt-presenter-main{padding-top:10px;padding-bottom:10px}.ppt-preview-stack{grid-template-rows:minmax(0,1fr) clamp(88px,16vh,118px);gap:10px}.ppt-stage-label{padding:7px 10px}.ppt-notes-head{padding:12px 14px}.ppt-purpose-block{margin-top:10px;padding:8px 10px}.ppt-notes-draft-head{margin-top:10px;padding-top:9px}.ppt-presenter-bottom{padding-top:8px;padding-bottom:8px}.ppt-control-stack{gap:5px}.ppt-session-actions{padding-top:5px}}
+  /* ============ /演讲者模式 ============ */
+
+  /* ============================================================
+     ============ LAYOUTS API · 面向 agent 的类（v2）============
+     所有 layouts.md 中的骨架都基于下面这套命名。
+     如果你在 layouts.md 里看到某个类，它必须在下面有定义。
+     ============================================================ */
+
+  /* ---------- .frame：每页主内容容器 ---------- */
+  .frame{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  /* 当 .frame 同时加了 grid 类时，grid 的 display:grid 覆盖 flex */
+  .frame.grid-2-7-5,
+  .frame.grid-2-6-6,
+  .frame.grid-2-8-4,
+  .frame.grid-3-3,
+  .frame.grid-6{display:grid}
+
+  /* ---------- 标题层级（API 名称，衬线为主） ---------- */
+  .h-hero{
+    font-family:var(--serif-zh);
+    font-weight:900;
+    font-size:10vw;
+    line-height:.96;
+    letter-spacing:-.02em;
+  }
+  .h-xl{
+    font-family:var(--serif-zh);
+    font-weight:700;
+    font-size:6.2vw;
+    line-height:1.08;
+    letter-spacing:-.01em;
+  }
+  .h-sub{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:3.1vw;
+    line-height:1.25;
+    letter-spacing:0;
+    opacity:.7;
+  }
+  .h-md{
+    font-family:var(--serif-zh);
+    font-weight:600;
+    font-size:2.3vw;
+    line-height:1.3;
+  }
+  /* 英文标题专用（Playfair 衬线） */
+  .h-hero-en,.h-xl-en{font-family:var(--serif-en);letter-spacing:-.025em}
+
+  /* ---------- lead 引语：定义见上方“字体规则”区块（已合并，勿重复定义） ---------- */
+
+  /* ---------- meta-row 底部元数据 ---------- */
+  .meta-row{
+    display:flex;
+    gap:1.2em;
+    align-items:baseline;
+    flex-wrap:wrap;
+    font-family:var(--mono);
+    font-size:max(12px,.92vw);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- stat-card（数据大字报用） ---------- */
+  .stat-card{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    align-items:flex-start;
+    padding-top:1.6vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.3);
+  }
+  .stat-card .stat-label{
+    font-family:var(--mono);
+    font-size:max(10px,.78vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.55;
+  }
+  .stat-card .stat-nb{
+    font-family:var(--serif-en);
+    font-weight:800;
+    font-size:5.8vw;
+    line-height:.9;
+    letter-spacing:-.03em;
+    font-feature-settings:"tnum";
+    margin-top:.4vh;
+  }
+  .stat-card .stat-nb .stat-unit{
+    font-family:var(--serif-zh);
+    font-weight:500;
+    font-size:.38em;
+    letter-spacing:0;
+    opacity:.72;
+    margin-left:.14em;
+  }
+  .stat-card .stat-note{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(13px,1.05vw);
+    line-height:1.5;
+    opacity:.72;
+    margin-top:.6vh;
+  }
+  /* 当 stat-card 用于 grid-4（2x2），数字适度放大；若页面有标题+引文在上方，可内联 style 覆盖为更小值 */
+  .grid-4 .stat-card .stat-nb{font-size:5vw}
+  /* 当只有 3 个，字也可以稍大 */
+  .grid-3 .stat-card .stat-nb{font-size:6.8vw}
+
+  /* ---------- pipeline（流水线） ---------- */
+  .pipeline-section{
+    margin-top:4.4vh;
+    padding-top:2.8vh;
+    border-top:1px dashed rgba(127,127,127,.32);
+  }
+  .pipeline-section:first-of-type{
+    border-top:0;
+    padding-top:0;
+    margin-top:3vh;
+  }
+  .pipeline-label{
+    font-family:var(--mono);
+    font-size:max(11px,.85vw);
+    letter-spacing:.24em;
+    text-transform:uppercase;
+    opacity:.62;
+    margin-bottom:2.2vh;
+  }
+  .pipeline{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:1.2vw;
+  }
+  .pipeline[data-cols="3"]{grid-template-columns:repeat(3,1fr)}
+  .pipeline[data-cols="4"]{grid-template-columns:repeat(4,1fr)}
+  .pipeline[data-cols="6"]{grid-template-columns:repeat(6,1fr)}
+  .step{
+    display:flex;
+    flex-direction:column;
+    gap:.8vh;
+    padding-top:1.4vh;
+    border-top:1px solid currentColor;
+    border-color:rgba(127,127,127,.35);
+  }
+  .step-nb{
+    font-family:var(--serif-en);
+    font-style:italic;
+    font-weight:500;
+    font-size:1.15vw;
+    opacity:.45;
+  }
+  .step-title{
+    font-family:var(--sans-zh);
+    font-weight:700;
+    font-size:1.55vw;
+    letter-spacing:.01em;
+    line-height:1.2;
+  }
+  .step-desc{
+    font-family:var(--sans-zh);
+    font-weight:400;
+    font-size:max(12px,.95vw);
+    line-height:1.45;
+    opacity:.72;
+  }
+
+  /* ---------- 网格（layouts.md 所用） ---------- */
+  /* 这些类独立挂到任何容器上都能生效，不依赖 .frame 复合选择器 */
+  .grid-2-7-5{display:grid;grid-template-columns:7fr 5fr;gap:3vw 4vh;align-items:start}
+  .grid-2-6-6{display:grid;grid-template-columns:1fr 1fr;gap:3vw 4vh;align-items:start}
+  .grid-2-8-4{display:grid;grid-template-columns:8fr 4fr;gap:3vw 4vh;align-items:start}
+  .grid-3-3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-auto-rows:minmax(0,1fr);
+    gap:2.4vh 2vw;
+  }
+  /* grid-6 已在旧样式里定义为 3x2，这里仅补 align */
+
+  /* ---------- 图片 frame-img（layouts.md 主命名） ---------- */
+  /* 在旧样式里已定义，这里补 img-cap 命名别名与增强 */
+  figure.frame-img{margin:0;display:flex;flex-direction:column;min-width:0}
+  /* 有图注时:图片弹性收缩,图注收进固定高度/比例框内部,
+     否则 img 的 height:100% 会把 figcaption 挤出 overflow:hidden 裁掉 */
+  figure.frame-img:has(> .img-cap) > img{flex:1 1 auto;min-height:0;height:auto}
+  .img-cap{
+    display:block;
+    flex:0 0 auto;
+    padding:.7vh .9em .9vh;
+    font-family:var(--mono);
+    font-size:max(10px,.8vw);
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+  /* callout src 命名别名 */
+  .callout-src{
+    display:block;
+    margin-top:1.6vh;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    opacity:.6;
+  }
+
+  /* ---------- chrome & foot：定义见上方“Magazine chrome”区块（已合并，勿重复定义） ---------- */
+
+  /* ============ 动效系统(Motion One 驱动) ============
+     所有 [data-anim] 元素默认隐藏,进入页面时由 JS 逐个揭示。
+     - cascade(默认):按 DOM 顺序 stagger 120ms 淡入 + y:16→0
+     - hero(hero 页自动):慢一点的 stagger 180ms
+     - quote(含 [data-anim="line"]):逐行 600ms 淡入
+     - directional(含 [data-anim="left|right"]):左→分隔线→右
+     - pipeline(data-animate="pipeline"):Space/→ 手动推进
+     Motion One 没加载成功时(CDN 断 + 本地丢),所有 [data-anim] 会兜底显示。
+  */
+  [data-anim]{opacity:1}
+  body.motion-ready [data-anim]{opacity:0}
+  body.motion-ready [data-anim="left"]{transform:translateX(-24px)}
+  body.motion-ready [data-anim="right"]{transform:translateX(24px)}
+  body.motion-ready [data-anim="line"]{opacity:0;transform:translateY(10px)}
+  body.motion-ready [data-animate="pipeline"] [data-anim]{opacity:.15}
+  body.low-power #deck{transition:none!important}
+  body.low-power *,
+  body.low-power *::before,
+  body.low-power *::after{animation:none!important;transition:none!important}
+  body.low-power.motion-ready [data-anim],
+  body.low-power [data-anim]{opacity:1!important;transform:none!important}
+  /* ESC 索引缩略图：克隆的 slide 不经过动效播放，强制显示所有待动画元素 */
+  #overview [data-anim]{opacity:1!important;transform:none!important}
+
+  /* ============ Bread-note visual language ============ */
+  .doodle-title{
+    font-family:"Arial Black","Noto Sans SC",sans-serif;
+    font-weight:900;
+    letter-spacing:0;
+    line-height:1.03;
+    text-wrap:balance;
+    -webkit-text-stroke:.018em currentColor;
+    text-shadow:
+      .018em .025em 0 currentColor,
+      -.014em .012em 0 currentColor;
+    transform:rotate(-.35deg);
+  }
+  .doodle-title .tilt{display:inline-block;transform:rotate(-2.2deg) skewX(-1deg)}
+  .doodle-title .tilt:nth-child(even){transform:rotate(1.8deg) translateY(.06em) skewX(1deg)}
+  .frame.split,.frame.split-55{display:grid}
+  .marker{
+    display:inline;
+    padding:0 .08em;
+    background:linear-gradient(transparent 66%,rgba(var(--toast-rgb),.48) 66% 92%,transparent 92%);
+  }
+  .bread-stage{position:relative;min-height:42vh;display:grid;place-items:center}
+  .bread{
+    position:relative;width:min(30vw,430px);aspect-ratio:1.35;
+    border:clamp(3px,.3vw,6px) solid currentColor;
+    border-radius:47% 44% 34% 35% / 55% 54% 38% 40%;
+    transform:rotate(-3deg);
+    background:rgba(255,222,130,.2);
+    box-shadow:inset 0 -2.3vh 0 rgba(var(--toast-rgb),.18);
+  }
+  .bread::before,.bread::after{
+    content:"";position:absolute;top:22%;width:27%;height:22%;
+    border-top:clamp(3px,.25vw,5px) solid currentColor;border-radius:50%;
+    transform:rotate(-25deg);opacity:.68;
+  }
+  .bread::before{left:18%}.bread::after{left:51%}
+  .crumb{position:absolute;width:.55vw;height:.55vw;min-width:6px;min-height:6px;border:2px solid currentColor;border-radius:50%;opacity:.5}
+  .worker{position:absolute;width:5vw;height:10vw;min-width:46px;min-height:92px;color:currentColor}
+  .worker .head{position:absolute;left:30%;top:0;width:38%;aspect-ratio:1;border:3px solid currentColor;border-radius:47% 53% 44% 56%;transform:rotate(7deg)}
+  .worker .body{position:absolute;left:35%;top:29%;width:30%;height:34%;border-left:3px solid currentColor;border-right:3px solid currentColor;transform:rotate(-3deg)}
+  .worker .arm,.worker .leg{position:absolute;height:3px;background:currentColor;transform-origin:left center}
+  .worker .arm.a{left:37%;top:38%;width:38%;transform:rotate(-28deg)}
+  .worker .arm.b{left:53%;top:40%;width:34%;transform:rotate(42deg)}
+  .worker .leg.a{left:43%;top:62%;width:34%;transform:rotate(70deg)}
+  .worker .leg.b{left:54%;top:62%;width:35%;transform:rotate(108deg)}
+  .worker.push{right:7%;bottom:5%;transform:rotate(-6deg)}
+  .worker.climb{left:4%;bottom:13%;transform:scale(.82) rotate(5deg)}
+  .ladder{position:absolute;left:13%;bottom:8%;width:5vw;height:17vh;border-left:3px solid currentColor;border-right:3px solid currentColor;transform:rotate(-9deg);opacity:.76}
+  .ladder i{display:block;height:3px;background:currentColor;margin-top:2.7vh}
+  .scribble{position:absolute;border:3px solid currentColor;border-radius:50%;opacity:.14;transform:rotate(-8deg);pointer-events:none}
+  .note-strip{display:flex;gap:1.1vw;flex-wrap:wrap;margin-top:3vh}
+  .note-chip{padding:.8vh 1vw;border:1.5px solid currentColor;font-family:var(--mono);font-size:max(10px,.75vw);letter-spacing:.12em;transform:rotate(-1deg)}
+  .path-line{display:grid;grid-template-columns:repeat(5,1fr);gap:1.2vw;align-items:stretch}
+  .path-stop{position:relative;padding:2.5vh 1.3vw 2vh;border-top:2px solid currentColor;min-width:0}
+  .path-stop::before{content:"";position:absolute;top:-7px;left:0;width:12px;height:12px;border:2px solid currentColor;border-radius:50%;background:var(--paper)}
+  .dark .path-stop::before{background:var(--ink)}
+  .path-stop strong{display:block;font-family:var(--serif-zh);font-size:1.45vw;line-height:1.2;margin-bottom:1vh}
+  .path-stop span{font-family:var(--sans-zh);font-size:max(12px,.92vw);line-height:1.55;opacity:.68}
+  .reflection{display:grid;grid-template-columns:12vw 1fr;gap:2vw;padding:2.4vh 0;border-top:1px solid rgba(127,127,127,.32);align-items:center}
+  .reflection:last-child{border-bottom:1px solid rgba(127,127,127,.32)}
+  .reflection .no{font-family:var(--serif-en);font-weight:800;font-size:4vw;line-height:1;opacity:.28}
+  .reflection strong{display:block;font-family:var(--serif-zh);font-size:1.7vw;margin-bottom:.7vh}
+  .reflection p{font-size:max(13px,1.02vw);line-height:1.55;opacity:.7}
+  .experiment{position:relative;padding:3vh 1.8vw;border-top:3px solid currentColor;min-height:28vh}
+  .experiment .num{font:800 5vw/1 var(--serif-en);opacity:.18}
+  .experiment h3{font:700 2vw/1.25 var(--serif-zh);margin:-1vh 0 1.5vh}
+  .experiment p{font-size:max(13px,1.05vw);line-height:1.65;opacity:.72}
+  .balance{display:grid;grid-template-columns:1fr auto 1fr;gap:3vw;align-items:center}
+  .balance .side{padding:3vh 2.3vw;border:1px solid currentColor}
+  .balance .side h3{font:700 2vw/1.25 var(--serif-zh);margin-bottom:1.5vh}
+  .balance .side p{font-size:max(13px,1.05vw);line-height:1.65;opacity:.72}
+  .balance .plus{font:300 4vw/1 var(--serif-en);opacity:.45}
+  .small-truth{font-family:var(--mono);font-size:max(10px,.8vw);line-height:1.7;letter-spacing:.12em;opacity:.55;text-transform:uppercase}
+  .social-feed{display:grid;gap:1.2vh;width:min(34vw,520px);transform:rotate(1deg)}
+  .social-row{display:grid;grid-template-columns:2.8vw 1fr auto;gap:1vw;align-items:center;padding:1.2vh 1vw;border:1px solid currentColor;background:rgba(var(--paper-rgb),.04)}
+  .social-row .avatar{aspect-ratio:1;border:2px solid currentColor;border-radius:50%;opacity:.55}
+  .social-row b{font-size:max(12px,1vw);font-weight:600}.social-row span{font:400 max(10px,.74vw)/1.3 var(--mono);opacity:.5}
+  .social-row .badge{font:600 max(10px,.72vw)/1 var(--mono);padding:.5vh .5vw;border:1px solid currentColor}
+  .final-line{max-width:78vw;font-family:var(--serif-zh);font-size:2vw;line-height:1.5;opacity:.82}
+  .final-line strong{font-size:2.5vw}
+
+  /* 喜茶海报式粗拙标题：正文保持克制，只有标题与关键短句“手写化”。 */
+  .h1-zh,.h2-zh,
+  .pillar .t,.reflection strong,
+  .experiment h3,.balance .side h3,
+  .final-line strong{
+    font-family:"Arial Black","Noto Sans SC",sans-serif;
+    font-weight:900;
+    letter-spacing:0;
+  }
+  .h1-zh,.h2-zh{
+    line-height:1.16;
+    -webkit-text-stroke:.012em currentColor;
+    text-shadow:.022em .025em 0 currentColor;
+    transform:rotate(-.25deg);
+  }
+  .wonky-char{
+    display:inline-block;
+    transform-origin:50% 72%;
+  }
+  .wonky-char:nth-of-type(6n+1){transform:rotate(-2.1deg) translateY(.015em) scaleY(1.04)}
+  .wonky-char:nth-of-type(6n+2){transform:rotate(1.2deg) translateY(-.025em) scaleX(.97)}
+  .wonky-char:nth-of-type(6n+3){transform:rotate(-.7deg) translateY(.035em) scale(.99,1.02)}
+  .wonky-char:nth-of-type(6n+4){transform:rotate(1.8deg) translateY(-.012em) scaleX(1.025)}
+  .wonky-char:nth-of-type(6n+5){transform:rotate(-1.3deg) translateY(.02em) scaleY(.98)}
+  .wonky-char:nth-of-type(6n){transform:rotate(.6deg) translateY(-.018em) scale(1.015)}
+  .pillar:nth-child(odd) .t,
+  .experiment:nth-child(odd) h3{transform:rotate(-1.2deg)}
+  .pillar:nth-child(even) .t,
+  .experiment:nth-child(even) h3{transform:rotate(1deg)}
+  .slide.light .note-chip:nth-child(odd){background:rgba(255,239,170,.28)}
+  .slide.dark .note-chip:nth-child(even){background:rgba(245,207,105,.07)}
+  .slide.light .callout{background:rgba(255,239,170,.3)}
+  .slide.dark .callout{background:rgba(245,207,105,.07)}
+  .slide.light .balance .side,
+  .slide.light .social-row{background:rgba(255,239,170,.18)}
+  .slide.dark .balance .side{background:rgba(245,207,105,.045)}
+
+  /* ---------- Oven opening / warm doodle language ---------- */
+  :root{
+    --bread:#d9823b;
+    --toast:#b85d2b;
+    --butter:#ffe9a6;
+    --oven:#24140e;
+  }
+  .hand{
+    font-family:"Comic Sans MS","Bradley Hand","Kaiti SC","KaiTi",cursive;
+    letter-spacing:.01em;
+  }
+  .warm-title{
+    font-family:"Comic Sans MS","Bradley Hand","Kaiti SC","KaiTi",cursive;
+    font-weight:700;
+    line-height:1.06;
+    letter-spacing:0;
+    transform:rotate(-1.2deg);
+    text-shadow:.035em .04em 0 rgba(90,38,17,.18);
+  }
+  .oven-scene{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 44%,rgba(255,211,112,.38),transparent 25%),
+      linear-gradient(180deg,#2b160e 0%,#160b08 100%);
+  }
+  .oven-window{
+    position:absolute;
+    left:8vw;right:8vw;top:10vh;bottom:10vh;
+    border:clamp(9px,1.2vw,20px) solid #0f0907;
+    border-radius:20px 20px 10px 10px;
+    background:
+      radial-gradient(ellipse at 50% 60%,rgba(255,195,93,.95) 0 8%,rgba(239,132,45,.55) 18%,rgba(75,31,16,.72) 56%,rgba(12,7,5,.98) 78%),
+      #180b07;
+    box-shadow:0 0 0 5px rgba(255,220,133,.08), inset 0 0 70px rgba(0,0,0,.85), 0 20px 80px rgba(0,0,0,.45);
+  }
+  .oven-window::before{
+    content:"";
+    position:absolute;inset:4%;
+    border:2px solid rgba(255,224,145,.22);
+    border-radius:12px;
+    transform:skewX(-2deg);
+  }
+  .oven-rack{
+    position:absolute;left:15%;right:15%;bottom:23%;
+    height:2px;background:rgba(255,231,163,.55);
+    box-shadow:0 12px 0 rgba(255,231,163,.3),0 24px 0 rgba(255,231,163,.2);
+  }
+  .oven-bread{
+    position:absolute;left:50%;bottom:26%;width:min(30vw,420px);aspect-ratio:1.5;
+    transform:translateX(-50%) rotate(-4deg);
+    border:clamp(4px,.45vw,8px) solid #7d3517;
+    border-radius:52% 48% 42% 43% / 62% 61% 38% 40%;
+    background:linear-gradient(180deg,#f7bc57 0%,#db762f 72%,#9e431c 100%);
+    box-shadow:0 0 38px rgba(255,182,65,.65), inset 0 -20px 0 rgba(132,49,15,.24);
+    animation:bread-rise 3.6s ease-in-out infinite alternate;
+  }
+  .oven-bread::before,.oven-bread::after{
+    content:"";position:absolute;top:22%;width:25%;height:19%;
+    border-top:clamp(3px,.32vw,6px) solid #8d3b18;border-radius:50%;
+    transform:rotate(-22deg);
+  }
+  .oven-bread::before{left:22%}.oven-bread::after{left:55%}
+  .oven-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 56%,rgba(255,195,88,.24),transparent 32%);animation:oven-flicker 2.6s ease-in-out infinite}
+  .oven-face{
+    position:absolute;left:50%;top:20%;width:min(22vw,300px);height:min(28vw,390px);
+    transform:translate(-50%,-8%) scale(.86);opacity:0;
+    transition:opacity .7s ease,transform .9s cubic-bezier(.2,.8,.2,1);
+  }
+  .oven-face::before{
+    content:"";position:absolute;inset:0;border:clamp(4px,.45vw,8px) solid #5b2818;
+    border-radius:48% 52% 46% 50% / 42% 42% 58% 58%;background:#f7c37a;
+    box-shadow:inset 0 -24px 0 rgba(183,87,37,.2);
+  }
+  .oven-face .eye,.oven-face .mouth,.oven-face .cheek{position:absolute;z-index:1}
+  .oven-face .eye{top:36%;width:10%;height:6%;border-bottom:clamp(3px,.3vw,6px) solid #5b2818;border-radius:50%}
+  .oven-face .eye.left{left:27%;transform:rotate(14deg)}.oven-face .eye.right{right:27%;transform:rotate(-14deg)}
+  .oven-face .mouth{left:39%;top:54%;width:22%;height:12%;border-bottom:clamp(4px,.35vw,7px) solid #5b2818;border-radius:0 0 50% 50%}
+  .oven-face .cheek{top:50%;width:12%;height:7%;border-radius:50%;background:rgba(222,102,78,.48)}
+  .oven-face .cheek.left{left:14%}.oven-face .cheek.right{right:14%}
+  .chef-hat{
+    position:absolute;left:50%;top:-13%;width:65%;height:27%;transform:translateX(-50%) rotate(-3deg);
+    border:clamp(4px,.4vw,7px) solid #5b2818;border-bottom:0;border-radius:50% 50% 12% 12%;
+    background:#fff2c5;z-index:2;
+  }
+  .chef-hat::after{content:"";position:absolute;left:-8%;right:-8%;bottom:-18%;height:25%;border:inherit;border-top:0;background:#fff2c5}
+  .oven-open .oven-face{opacity:1;transform:translate(-50%,0) scale(1);transition-delay:.6s}
+  .oven-open .oven-window{animation:oven-open 1.1s .15s both}
+  .oven-open .oven-bread{animation:bread-rise 1.2s ease-in-out infinite alternate}
+  .scene-label{position:absolute;left:7vw;bottom:6vh;color:#ffe8a6;z-index:3;font-size:clamp(18px,2.4vw,36px);opacity:.85}
+  .scene-spark{position:absolute;width:10px;height:10px;border-radius:50%;background:#ffe8a6;box-shadow:0 0 18px #ffe8a6;animation:spark-float 4s ease-in-out infinite}
+  .scene-spark:nth-child(1){left:19%;top:32%;animation-delay:.4s}.scene-spark:nth-child(2){right:18%;top:25%;animation-delay:1.3s}.scene-spark:nth-child(3){right:28%;bottom:21%;animation-delay:2s}
+  .tool-doodle{position:absolute;font-size:clamp(42px,6vw,100px);line-height:1;color:var(--toast);opacity:.55;transform:rotate(-12deg)}
+  .photo-slot{
+    min-height:18vh;
+    border:2px dashed currentColor;
+    border-radius:18px 11px 20px 13px;
+    display:grid;place-items:center;
+    background:rgba(255,245,190,.22);
+    color:inherit;opacity:.64;
+    font-family:"Comic Sans MS","Bradley Hand","Kaiti SC","KaiTi",cursive;
+    font-size:clamp(14px,1.3vw,20px);
+    transform:rotate(-1deg);
+  }
+  .photo-slot:nth-child(even){transform:rotate(1.2deg)}
+  @keyframes bread-rise{from{transform:translateX(-50%) rotate(-4deg) scale(.96)}to{transform:translateX(-50%) rotate(-2deg) scale(1.04)}}
+  @keyframes oven-flicker{0%,100%{opacity:.45}50%{opacity:.9}}
+  @keyframes oven-open{0%{filter:brightness(.7);transform:scale(.98)}100%{filter:brightness(1.15);transform:scale(1)}}
+  @keyframes spark-float{0%,100%{transform:translateY(0) scale(.7);opacity:.15}50%{transform:translateY(-26px) scale(1.3);opacity:.9}}
+  @media (prefers-reduced-motion:reduce){.oven-bread,.oven-glow,.scene-spark{animation:none}.oven-face{opacity:1;transform:translate(-50%,0) scale(1)}}
+
+  /* ---------- v2: illustrated storybook skin ---------- */
+  :root{
+    --paper:#fff5d9;
+    --paper-rgb:255,245,217;
+    --ink:#4a251b;
+    --ink-rgb:74,37,27;
+    --paper-tint:#f4cf78;
+    --toast:#c75b35;
+    --toast-rgb:199,91,53;
+    --sage:#7f9a6a;
+    --berry:#b84d58;
+  }
+  html,body{background:#f4d98c;color:var(--ink)}
+  .slide{padding:5.2vh 6vw 8vh;background:var(--paper)!important;color:var(--ink)!important}
+  .slide.dark{background:#f1c96b!important;color:var(--ink)!important}
+  .slide::before,.slide::after{display:none}
+  .chrome,.foot{font-family:"Caveat","Comic Sans MS",cursive;letter-spacing:.04em;text-transform:none;opacity:.8}
+  .chrome{font-size:clamp(16px,1.4vw,23px)}
+  .foot{font-size:clamp(16px,1.35vw,22px)}
+  .foot .title{font-family:"ZCOOL KuaiLe","Kaiti SC",cursive;font-size:1.05em;color:var(--berry)}
+  .kicker,.meta,.small-truth{font-family:"Caveat",cursive;text-transform:none;letter-spacing:.05em;font-size:clamp(17px,1.35vw,24px);opacity:.7}
+  .warm-title,.doodle-title,.h1-zh,.h2-zh,.h3-zh,.callout,.lead,.body-zh,.reflection strong,.path-stop strong,.experiment h3,.balance .side h3,.final-line{
+    font-family:"ZCOOL KuaiLe","Kaiti SC","KaiTi",cursive!important;
+    letter-spacing:0!important;
+  }
+  .warm-title,.doodle-title{font-weight:400;text-shadow:3px 4px 0 rgba(199,91,53,.16);-webkit-text-stroke:0}
+  .lead{font-size:clamp(22px,2.25vw,38px);line-height:1.48;opacity:.92}
+  .body-zh,.reflection p,.path-stop span,.experiment p,.balance .side p{font-family:"ZCOOL KuaiLe","Kaiti SC",cursive;font-size:clamp(18px,1.45vw,25px);line-height:1.55;opacity:.84}
+  .h1-zh{font-size:clamp(42px,5vw,88px);line-height:1.12}
+  .h2-zh{font-size:clamp(32px,4vw,72px)}
+  .slide.light,.slide.dark{background-image:
+    radial-gradient(circle at 4% 12%,rgba(199,91,53,.12) 0 2px,transparent 3px),
+    radial-gradient(circle at 92% 82%,rgba(127,154,106,.15) 0 2px,transparent 3px),
+    linear-gradient(transparent 96%,rgba(199,91,53,.08) 96%);background-size:auto,auto,100% 34px}
+  .split,.split-55{gap:6vw}
+  .callout{border:3px solid var(--toast);border-left-width:3px;border-radius:20px 10px 19px 13px;background:rgba(255,255,255,.32)!important;padding:2.2vh 2vw;transform:rotate(-1deg)}
+  .callout .q-big{font-size:clamp(26px,2.6vw,48px);line-height:1.25}
+  .note-chip{font-family:"ZCOOL KuaiLe","Kaiti SC",cursive;font-size:clamp(17px,1.25vw,23px);letter-spacing:0;border:2px solid var(--berry);border-radius:9px 16px 12px 7px;background:#fff1bf!important;padding:.65vh 1vw}
+  .path-line{gap:1.4vw}
+  .path-stop{border-top:3px solid var(--toast);padding:2vh 1vw 1.5vh}
+  .path-stop::before{border:3px solid var(--toast);background:var(--paper)!important;width:15px;height:15px}
+  .path-stop strong{font-size:clamp(22px,1.7vw,32px);color:var(--berry)}
+  .photo-slot{font-size:clamp(15px,1.2vw,22px);border:3px dashed var(--sage);background:rgba(255,255,255,.28);color:var(--sage);border-radius:17px 8px 18px 10px}
+  .chef-road-layout{display:grid;grid-template-columns:minmax(150px,.8fr) minmax(0,4.2fr);gap:2.6vw;align-items:center;flex:1;min-height:0}
+  .chef-road-intro{position:relative;display:flex;flex-direction:column;justify-content:center;gap:2vh;min-width:0}
+  .chef-road-intro .line-person{align-self:flex-start;margin-left:1vw}
+  .internship-track{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1vw;align-items:stretch;min-width:0;padding:3.5vh 0 1vh}
+  .internship-track::before{content:"";position:absolute;left:1%;right:1%;top:2.1vh;border-top:3px solid var(--toast);opacity:.65;transform:rotate(-1deg)}
+  .internship-card{position:relative;display:flex;flex-direction:column;gap:.8vh;min-width:0;padding:1.3vh .55vw .9vh;background:#fff5d9;border:2px solid var(--toast);border-radius:15px 7px 13px 9px;box-shadow:4px 5px 0 rgba(199,91,53,.13);transform:rotate(-1.2deg)}
+  .internship-card:nth-child(even){transform:rotate(1.2deg);background:#fff0bf}
+  .internship-card::before{content:"";position:absolute;top:-7px;left:50%;width:13px;height:13px;border:2px solid var(--toast);border-radius:50%;background:var(--paper);transform:translateX(-50%);z-index:2}
+  .internship-card:nth-child(3)::before{background:var(--sage)}
+  .internship-photo{width:100%;height:18vh;min-height:105px;object-fit:cover;object-position:center;border-radius:10px 5px 9px 6px;border:2px solid rgba(74,37,27,.42);display:block}
+  .internship-card:nth-child(1) .internship-photo{object-position:center 38%}
+  .internship-card:nth-child(2) .internship-photo{object-position:center 28%}
+  .internship-card:nth-child(3) .internship-photo{object-position:center 42%}
+  .internship-card:nth-child(4) .internship-photo{object-position:center 45%}
+  .internship-card:nth-child(5) .internship-photo{object-position:center 25%}
+  .internship-card .when{font:clamp(15px,1.15vw,22px)/1 "Caveat",cursive;color:var(--berry)}
+  .internship-card strong{font:clamp(15px,1.15vw,22px)/1.2 "ZCOOL KuaiLe","Kaiti SC",cursive;color:var(--ink)}
+  .internship-card p{font:clamp(11px,.78vw,15px)/1.35 "ZCOOL KuaiLe","Kaiti SC",cursive;color:var(--ink);opacity:.75}
+  .line-person{position:relative;width:54px;height:86px;color:var(--berry);transform:rotate(-6deg)}
+  .line-person::before{content:"";position:absolute;left:19px;top:0;width:22px;height:22px;border:3px solid currentColor;border-radius:50%}
+  .line-person::after{content:"";position:absolute;left:29px;top:24px;width:3px;height:34px;background:currentColor;box-shadow:-15px 15px 0 -1px currentColor,15px 15px 0 -1px currentColor,-10px 57px 0 -1px currentColor,10px 57px 0 -1px currentColor;transform:rotate(-7deg)}
+  .chef-road-doodle{position:absolute;color:var(--sage);font:clamp(34px,4vw,70px)/1 "Caveat",cursive;pointer-events:none}
+  .chef-road-doodle.pan{right:1vw;top:-1vh;transform:rotate(18deg)}
+  .chef-road-doodle.spatula{left:-1.5vw;bottom:7vh;transform:rotate(-28deg)}
+  .chef-road-doodle.crumbs{right:1vw;bottom:1vh;transform:rotate(12deg);color:var(--berry)}
+  .internship-card .mini-person{position:absolute;right:.35vw;bottom:.35vh;color:var(--sage);font-size:20px;opacity:.8}
+  .internship-card::after{
+    content:"✦";
+    position:absolute;
+    right:-.25vw;
+    top:-1.3vh;
+    color:var(--berry);
+    font:clamp(18px,1.7vw,29px)/1 "Caveat",cursive;
+    transform:rotate(14deg);
+  }
+  .internship-track::after{
+    content:"·  ·  ·";
+    position:absolute;
+    right:1.2vw;
+    bottom:-1.2vh;
+    color:var(--sage);
+    font:clamp(20px,2vw,34px)/1 "Caveat",cursive;
+    letter-spacing:.12em;
+    transform:rotate(-8deg);
+  }
+  section:not(.oven-opening) .warm-title{font-size:clamp(34px,4.25vw,74px)!important}
+  section:not(.oven-opening) .lead{font-size:clamp(19px,1.75vw,31px)}
+  section:not(.oven-opening) .hand[style*="font-size:2.5vw"]{font-size:clamp(19px,1.8vw,30px)!important}
+  .slide-doodle-person{position:absolute;right:5vw;bottom:11vh;z-index:0;color:var(--sage);opacity:.72;transform:scale(.72) rotate(5deg);transform-origin:bottom center;pointer-events:none}
+  .slide-doodle-person.berry{color:var(--berry);transform:scale(.62) rotate(-7deg)}
+  .slide-doodle-person .line-person{width:64px;height:100px}
+  .slide-doodle-person .line-person::before{border-width:3px}
+  .slide-doodle-person .line-person::after{width:3px}
+  .slide-doodle-tool{position:absolute;left:5vw;bottom:11vh;color:var(--toast);font:clamp(38px,5vw,82px)/1 "Caveat",cursive;opacity:.58;transform:rotate(-20deg);pointer-events:none}
+  .life-photo-bg{
+    position:absolute;
+    z-index:1;
+    pointer-events:none;
+    object-fit:cover;
+    border:3px solid rgba(199,91,53,.28);
+    border-radius:24px 10px 22px 12px;
+    box-shadow:8px 9px 0 rgba(199,91,53,.08);
+    filter:saturate(.88) sepia(.04);
+  }
+  .life-photo-one{
+    right:0;
+    top:10vh;
+    width:43vw;
+    height:79vh;
+    opacity:.94;
+    transform:none;
+    border:5px solid var(--toast);
+    border-right:0;
+    border-radius:25px 0 0 12px;
+    box-shadow:-8px 11px 0 rgba(199,91,53,.17);
+    filter:saturate(.96) sepia(.02);
+    object-position:center 44%;
+  }
+  section[data-slide-id="good-bread"] .frame{position:relative;z-index:1}
+  section[data-slide-id="meaning-of-internships"] .frame{
+    position:relative;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    width:49vw;
+    gap:1.8vh;
+    justify-content:flex-start;
+  }
+  section[data-slide-id="meaning-of-internships"] .frame > .col{
+    width:100%;
+    gap:0;
+  }
+  section[data-slide-id="meaning-of-internships"] .meaning-heading{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:1.6vh;
+    font-size:clamp(42px,5.8vw,88px)!important;
+    line-height:1.08;
+  }
+  section[data-slide-id="meaning-of-internships"] .meaning-subtitle{
+    display:block;
+    color:var(--berry);
+    font:clamp(24px,2.25vw,40px)/1.25 "Kaiti SC","STKaiti","KaiTi","ZCOOL KuaiLe",cursive;
+    text-shadow:none;
+  }
+  section[data-slide-id="meaning-of-internships"] .reflection{
+    grid-template-columns:7vw 1fr;
+    gap:1.3vw;
+    padding:1.45vh 0;
+  }
+  .proof-gallery{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:.8vw;
+    width:min(35vw,540px);
+    margin-top:2.2vh;
+  }
+  .proof-gallery img{
+    width:100%;
+    height:19vh;
+    min-height:112px;
+    object-fit:cover;
+    object-position:center;
+    border:3px solid #ffe7a2;
+    border-radius:13px 7px 12px 8px;
+    background:#20150f;
+    box-shadow:4px 5px 0 rgba(0,0,0,.14);
+  }
+  .proof-gallery img:first-child{transform:rotate(-1.4deg)}
+  .proof-gallery img:last-child{transform:rotate(1.2deg)}
+  .result-photo-card{
+    position:absolute;
+    right:4vw;
+    top:17vh;
+    z-index:0;
+    width:29vw;
+    height:55vh;
+    padding:.55vw;
+    background:#fff5d9;
+    border:3px solid var(--toast);
+    border-radius:16px 8px 18px 10px;
+    box-shadow:7px 8px 0 rgba(199,91,53,.14);
+    transform:rotate(4deg);
+  }
+  .result-photo-card img{
+    width:100%;
+    height:calc(100% - 1.8em);
+    object-fit:cover;
+    object-position:center 35%;
+    display:block;
+    border-radius:10px 5px 9px 6px;
+  }
+  .result-photo-card figcaption{
+    color:var(--berry);
+    font:clamp(14px,1.15vw,21px)/1.4 "Caveat",cursive;
+    text-align:center;
+    padding-top:.35vh;
+  }
+  section[data-slide-id="result-and-value"] .frame{position:relative;z-index:1;padding-right:30vw}
+  .final-callout{
+    color:#fff8dc!important;
+    text-shadow:0 2px 0 rgba(94,39,21,.3);
+  }
+  .chef-road-layout{position:relative}
+  .internship-preview{
+    position:fixed;
+    inset:0;
+    width:auto;
+    height:auto;
+    padding:6vh 8vw;
+    border:0;
+    border-radius:0;
+    background:rgba(49,24,17,.72);
+    box-shadow:none;
+    opacity:0;
+    transform:none;
+    pointer-events:none;
+    transition:opacity .24s ease,visibility .24s ease;
+    visibility:hidden;
+    z-index:250;
+    display:grid;
+    place-items:center;
+  }
+  .internship-preview.is-visible{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+  }
+  .internship-preview img{
+    width:min(78vw,1180px);
+    height:min(82vh,820px);
+    display:block;
+    object-fit:contain;
+    padding:1.4vh 1.2vw;
+    border:6px solid var(--toast);
+    border-radius:24px 10px 20px 12px;
+    background:#fff5d9;
+    box-shadow:12px 14px 0 rgba(0,0,0,.18),0 24px 56px rgba(0,0,0,.28);
+    animation:preview-pop .28s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .internship-preview::after{
+    content:"移开鼠标关闭";
+    position:absolute;
+    left:50%;
+    bottom:3.3vh;
+    transform:translateX(-50%);
+    color:#ffe7a2;
+    font:clamp(15px,1.2vw,21px)/1 "Caveat",cursive;
+    opacity:.9;
+    pointer-events:none;
+  }
+  @keyframes preview-pop{
+    from{opacity:0;transform:translateY(1.8vh) scale(.92) rotate(-1deg)}
+    to{opacity:1;transform:translateY(0) scale(1) rotate(0)}
+  }
+  .internship-track{padding-top:0}
+  .callout .q-big.hand{
+    font-family:"Kaiti SC","STKaiti","KaiTi","ZCOOL KuaiLe",cursive!important;
+    transform:rotate(-1deg);
+  }
+  .internship-card{
+    transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease;
+    cursor:zoom-in;
+  }
+  .internship-card:hover{
+    z-index:20;
+    transform:translateY(-.8vh) scale(1.04) rotate(0deg)!important;
+    box-shadow:6px 9px 0 rgba(199,91,53,.18),0 14px 26px rgba(74,37,27,.14);
+  }
+  .internship-card:hover .internship-photo{
+    border-color:var(--berry);
+  }
+  @media (max-width:1100px){
+    .chef-road-layout{grid-template-columns:1fr}
+    .chef-road-intro{flex-direction:row;align-items:center;justify-content:space-between}
+    .chef-road-intro .line-person{margin:0}
+    .internship-photo{height:15vh;min-height:82px}
+  }
+  @media (max-width:900px){
+    .internship-track{gap:.65vw}
+    .internship-card{padding:.9vh .45vw .7vh}
+    .internship-card .when{font-size:clamp(13px,1.8vw,18px)}
+    .internship-card strong{font-size:clamp(13px,1.8vw,18px)}
+    .internship-card p{font-size:clamp(10px,1.25vw,13px)}
+    .life-photo-one{right:0;top:16vh;width:41vw;height:66vh;opacity:.9}
+    .proof-gallery{width:min(39vw,430px)}
+    .proof-gallery img{height:16vh;min-height:86px}
+    .result-photo-card{right:3vw;width:28vw;height:43vh}
+    section[data-slide-id="result-and-value"] .frame{padding-right:29vw}
+    .internship-preview{padding:7vh 5vw}
+    .internship-preview img{width:88vw;height:74vh}
+    section[data-slide-id="meaning-of-internships"] .frame{width:53vw}
+  }
+  .reflection{grid-template-columns:6vw 1fr;border-top:2px dashed rgba(199,91,53,.38);padding:2.2vh 0}
+  .reflection .no{font-family:"Caveat",cursive;color:var(--berry);font-size:clamp(42px,4vw,70px);opacity:.7}
+  .reflection strong{font-size:clamp(25px,2.1vw,40px);color:var(--berry)}
+  .social-row{border:2px solid var(--sage);border-radius:12px 5px 13px 8px;background:#fff5d9!important;padding:1.1vh 1vw}
+  .social-row b{font-family:"ZCOOL KuaiLe",cursive;font-size:clamp(18px,1.35vw,25px)}
+  .social-row span{font-family:"Caveat",cursive;font-size:clamp(15px,1.15vw,21px)}
+  .balance .side{border:3px solid var(--toast);border-radius:18px 8px 16px 11px;background:#fff5d9!important;padding:2.5vh 2vw}
+  .balance .side h3{font-size:clamp(27px,2.3vw,44px);color:var(--berry)}
+  .balance .plus{font-family:"Caveat",cursive;font-size:clamp(50px,5vw,90px);color:var(--toast)}
+  .bread-stage{filter:drop-shadow(5px 7px 0 rgba(199,91,53,.13))}
+  .bread{border-color:var(--toast);background:#f6bd58;box-shadow:inset 0 -2.3vh 0 rgba(127,85,39,.16)}
+  .worker{color:var(--berry)}
+  .tool-doodle{font-family:"Caveat",cursive;color:var(--sage);font-size:clamp(70px,8vw,150px)}
+  .hero .frame.center{justify-content:center}
+  .hero .final-line strong{font-size:clamp(30px,3vw,54px)}
+  .oven-opening{background:#f4d98c!important}
+  .oven-opening .oven-scene{inset:11vh 7vw 12vh;background:#efb95e;border:5px solid var(--ink);border-radius:28px;box-shadow:10px 12px 0 rgba(74,37,27,.15)}
+  .oven-opening .oven-scene > .scene-spark,
+  .oven-opening .oven-scene > .oven-window{display:none}
+  .oven-opening .scene-label{z-index:3;text-shadow:0 2px 0 rgba(255,245,217,.5)}
+  .oven-opening .foot{z-index:3}
+  .oven-opening .oven-window{left:7%;right:7%;top:9%;bottom:9%;border:8px solid var(--ink);border-radius:28px;background:#fff0b0;box-shadow:inset 0 0 0 4px rgba(199,91,53,.5),inset 0 0 45px rgba(199,91,53,.2)}
+  .oven-opening .oven-glow{background:radial-gradient(circle at 50% 54%,rgba(255,225,133,.7),transparent 45%)}
+  .oven-opening .oven-rack{background:var(--toast);box-shadow:0 12px 0 rgba(199,91,53,.45),0 24px 0 rgba(199,91,53,.3)}
+  .oven-opening .oven-bread{border-color:var(--toast);box-shadow:0 14px 0 rgba(199,91,53,.12),inset 0 -20px 0 rgba(127,85,39,.16)}
+  .oven-opening .oven-face::before{border-color:var(--ink);background:#ffd98a}
+  .oven-opening .chef-hat{border-color:var(--ink);background:#fff8dc}.oven-opening .chef-hat::after{background:#fff8dc}
+  .oven-opening .scene-label{left:7%;bottom:5%;color:var(--ink);font-family:"ZCOOL KuaiLe",cursive;font-size:clamp(24px,2.6vw,44px)}
+  .oven-opening .chrome,.oven-opening .foot{color:var(--ink)}
+  .oven-opening .scene-spark{background:var(--berry);box-shadow:0 0 18px rgba(184,77,88,.5)}
+  #opening-curtain{position:fixed;inset:0;z-index:200;display:grid;place-items:center;overflow:hidden;background:#f4d98c;opacity:1;visibility:visible;transition:opacity .9s ease,visibility .9s ease}
+  #opening-curtain.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+  #opening-curtain video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#f4d98c}
+  .opening-film-frame{position:absolute;inset:4vh 4vw;overflow:hidden;border:5px solid var(--ink);border-radius:28px;box-shadow:10px 12px 0 rgba(74,37,27,.15);pointer-events:none}
+  .opening-film-frame::after{content:"";position:absolute;inset:0;border:2px solid rgba(255,245,217,.42);border-radius:22px;box-shadow:inset 0 0 50px rgba(74,37,27,.16)}
+  .opening-bread-reveal{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.46),transparent 24%),#f4d98c;opacity:0;transform:scale(.94);transition:opacity .7s ease,transform .8s cubic-bezier(.2,.8,.2,1)}
+  #opening-curtain.bread-revealed .opening-bread-reveal{opacity:1;transform:scale(1)}
+  .opening-bread-wrap{position:relative;width:min(46vw,620px);aspect-ratio:1.35;display:grid;place-items:center;filter:drop-shadow(7px 9px 0 rgba(199,91,53,.15))}
+  .opening-bread{width:78%;aspect-ratio:1.5;border:clamp(5px,.55vw,9px) solid var(--toast);border-radius:52% 48% 42% 43% / 62% 61% 38% 40%;background:linear-gradient(180deg,#f8c764 0%,#e28a39 72%,#b95727 100%);box-shadow:inset 0 -22px 0 rgba(127,85,39,.16),0 0 32px rgba(255,186,78,.45);transform:rotate(-4deg);animation:opening-bread-breathe 1.8s ease-in-out infinite alternate}
+  .opening-bread::before,.opening-bread::after{content:"";position:absolute;top:21%;width:24%;height:18%;border-top:clamp(3px,.35vw,6px) solid #9f451f;border-radius:50%;transform:rotate(-22deg)}
+  .opening-bread::before{left:22%}.opening-bread::after{left:56%}
+  .opening-bread-caption{position:absolute;left:50%;bottom:5%;transform:translateX(-50%) rotate(-2deg);width:max-content;color:var(--ink);font:clamp(27px,3.2vw,58px)/1.2 "ZCOOL KuaiLe","Kaiti SC",cursive;text-align:center}
+  .opening-bread-caption small{display:block;margin-top:1vh;color:var(--berry);font:clamp(17px,1.35vw,25px)/1.3 "Caveat",cursive}
+  .opening-static-bread{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.35),transparent 25%),#efb95e}
+  .opening-static-bread .opening-bread-wrap{width:min(48vw,680px)}
+  .opening-static-bread .opening-bread-caption{color:var(--ink)}
+  .opening-spark{position:absolute;color:var(--berry);font:clamp(30px,4vw,68px)/1 "Caveat",cursive;animation:opening-spark-float 1.8s ease-in-out infinite alternate}
+  .opening-spark.one{left:4%;top:18%;transform:rotate(-15deg)}.opening-spark.two{right:4%;top:27%;animation-delay:.35s;transform:rotate(12deg)}.opening-spark.three{right:16%;bottom:14%;animation-delay:.7s;transform:rotate(-8deg)}
+  @keyframes opening-bread-breathe{from{transform:rotate(-4deg) scale(.96)}to{transform:rotate(-2deg) scale(1.04)}}
+  @keyframes opening-spark-float{from{opacity:.35;transform:translateY(5px) rotate(-10deg)}to{opacity:1;transform:translateY(-12px) rotate(8deg)}}
+  @media (prefers-reduced-motion:reduce){#opening-curtain{transition:none}.opening-bread{animation:none}.opening-spark{animation:none}}
+  .editbar{position:fixed;right:1.5vw;top:1.5vh;z-index:80;display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--ink);border-radius:15px 8px 13px 9px;background:#fff5d9;color:var(--ink);box-shadow:4px 5px 0 rgba(74,37,27,.15);font-family:"ZCOOL KuaiLe",cursive}
+  .editbar button{border:0;background:var(--berry);color:#fff5d9;border-radius:9px 5px 8px 6px;padding:7px 12px;font:inherit;cursor:pointer}
+  .editbar button.secondary{background:var(--sage)}
+  body.edit-mode [data-editable]{outline:2px dashed rgba(184,77,88,.55);outline-offset:4px;cursor:text}
+  body.edit-mode [data-editable]:focus{outline:3px solid var(--berry);background:rgba(255,255,255,.45)}
+  body.edit-mode .slide{cursor:text}
+  body.ppt-audience .editbar,body.ppt-presenter .editbar,body.ppt-preview .editbar{display:none}
+  section[data-slide-id="good-bread"]::after,
+  section[data-slide-id="chef-road"]::after,
+  section[data-slide-id="meaning-of-internships"]::after,
+  section[data-slide-id="dirty-public"]::after,
+  section[data-slide-id="result-and-value"]::after,
+  section[data-slide-id="brave-chef"]::after{
+    display:block;position:absolute;right:5vw;top:12vh;font-family:"Caveat",cursive;font-size:clamp(62px,7vw,125px);color:var(--sage);opacity:.48;transform:rotate(12deg);z-index:0;pointer-events:none
+  }
+  section[data-slide-id="good-bread"]::after{content:"✿"}
+  section[data-slide-id="chef-road"]::after{content:"⌁"}
+  section[data-slide-id="meaning-of-internships"]::after{content:"☼"}
+  section[data-slide-id="dirty-public"]::after{content:"✦"}
+  section[data-slide-id="result-and-value"]::after{content:"♡"}
+  section[data-slide-id="brave-chef"]::after{content:"🍞";font-size:clamp(52px,6vw,100px)}
+
+  /* ---------- 响应式降级 ---------- */
+  @media (max-width:900px){
+    .display{font-size:16vw}
+    .display-zh{font-size:12vw}
+    .h1-zh{font-size:7vw}
+    .h-hero{font-size:14vw}
+    .h-xl{font-size:9vw}
+    .pipeline{grid-template-columns:repeat(2,1fr)}
+    .grid-2-7-5,.grid-2-6-6,.grid-2-8-4{grid-template-columns:1fr}
+    .path-stop strong{font-size:2.2vw}
+    .reflection strong{font-size:2.4vw}
+    .experiment h3,.balance .side h3{font-size:2.8vw}
+  }
+</style>
+</head>
+<body>
+<script>
+  document.addEventListener('DOMContentLoaded',()=>{
+    const targets=document.querySelectorAll('.doodle-title,.h1-zh,.h2-zh');
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    targets.forEach(title=>{
+      const nodes=[];
+      walker.currentNode=title;
+      while(walker.nextNode()){
+        const node=walker.currentNode;
+        if(title.contains(node)&&node.nodeValue.trim()) nodes.push(node);
+        if(!title.contains(node)) break;
+      }
+      nodes.forEach(node=>{
+        const frag=document.createDocumentFragment();
+        [...node.nodeValue].forEach(char=>{
+          if(/\s/.test(char)){
+            frag.append(char);
+          }else{
+            const span=document.createElement('span');
+            span.className='wonky-char';
+            span.textContent=char;
+            frag.append(span);
+          }
+        });
+        node.replaceWith(frag);
+      });
+    });
+    const curtain=document.getElementById('opening-curtain');
+    const curtainVideo=document.getElementById('opening-curtain-video');
+    if(curtain&&curtainVideo){
+      let closing=false;
+      const closeCurtain=()=>{
+        if(closing)return;
+        closing=true;
+        curtain.classList.add('bread-revealed');
+        setTimeout(()=>curtain.classList.add('is-hidden'),2300);
+      };
+      curtainVideo.addEventListener('ended',closeCurtain,{once:true});
+      curtainVideo.addEventListener('error',closeCurtain,{once:true});
+      curtainVideo.play().catch(()=>{});
+    }
+    const internshipPreview=document.querySelector('.internship-preview');
+    const internshipPreviewImage=internshipPreview?.querySelector('img');
+    if(internshipPreview&&internshipPreviewImage){
+      let previewCloseTimer;
+      const hideInternshipPreview=()=>{
+        clearTimeout(previewCloseTimer);
+        previewCloseTimer=setTimeout(()=>{
+          internshipPreview.classList.remove('is-visible');
+          internshipPreview.setAttribute('aria-hidden','true');
+        },120);
+      };
+      const showInternshipPreview=(source)=>{
+        clearTimeout(previewCloseTimer);
+        internshipPreviewImage.src=source.currentSrc||source.src;
+        internshipPreviewImage.alt=source.alt;
+        internshipPreview.classList.add('is-visible');
+        internshipPreview.setAttribute('aria-hidden','false');
+      };
+      document.querySelectorAll('.internship-card').forEach(card=>{
+        const source=card.querySelector('.internship-photo');
+        if(!source)return;
+        card.addEventListener('mouseenter',()=>{
+          showInternshipPreview(source);
+        });
+        card.addEventListener('mouseleave',()=>{
+          hideInternshipPreview();
+        });
+      });
+      internshipPreview.addEventListener('mouseenter',()=>{
+        clearTimeout(previewCloseTimer);
+      });
+      internshipPreview.addEventListener('mouseleave',hideInternshipPreview);
+      internshipPreview.addEventListener('click',hideInternshipPreview);
+    }
+  },{once:true});
+
+  (function(){
+    const KEY = 'guizang-ppt-low-power';
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stored = localStorage.getItem(KEY);
+    window.__lowPowerMode = stored === '1' || (stored === null && reduced);
+    function updateHint(){
+      const label = document.querySelector('.ppt-low-power-label');
+      if(label) label.textContent = window.__lowPowerMode ? '动态' : '静态';
+    }
+    window.__setLowPowerMode = function(on, opts={}){
+      window.__lowPowerMode = !!on;
+      document.body.classList.toggle('low-power', window.__lowPowerMode);
+      if(opts.persist !== false) localStorage.setItem(KEY, window.__lowPowerMode ? '1' : '0');
+      if(window.__lowPowerMode && document.getAnimations){
+        document.getAnimations().forEach(a=>a.cancel());
+      }
+      updateHint();
+      dispatchEvent(new CustomEvent('ppt-low-power-change', {detail:{on:window.__lowPowerMode}}));
+      if(window.__playSlide) window.__playSlide(window.__currentSlideIndex || 0);
+    };
+    document.body.classList.toggle('low-power', window.__lowPowerMode);
+    addEventListener('DOMContentLoaded', updateHint, {once:true});
+  })();
+</script>
+
+<canvas id="bg-dark" class="bg"></canvas>
+<canvas id="bg-light" class="bg"></canvas>
+<div id="hint" role="toolbar" aria-label="快捷控制">
+  <span>← → 翻页</span><span class="ppt-sep">·</span>
+  <button id="ppt-low-power-btn" type="button"><span class="ppt-key">B</span><span class="ppt-low-power-label">静态</span></button><span class="ppt-sep">·</span>
+  <button id="ppt-overview-btn" type="button"><span class="ppt-key">ESC</span>总览</button><span class="ppt-sep">·</span>
+  <button id="ppt-presenter-btn" type="button"><span class="ppt-key">P</span>演讲模式</button>
+</div>
+
+<div class="editbar" aria-label="网页编辑工具">
+  <button id="edit-toggle" type="button">编辑文字</button>
+  <button id="edit-save" class="secondary" type="button">保存</button>
+  <button id="edit-export" class="secondary" type="button">导出 HTML</button>
+</div>
+
+<div id="opening-curtain" aria-label="开屏动画">
+  <video id="opening-curtain-video" muted playsinline preload="auto">
+    <source src="assets/opening-animation.mp4" type="video/mp4">
+  </video>
+  <div class="opening-film-frame"></div>
+  <div class="opening-bread-reveal">
+    <div class="opening-bread-wrap">
+      <span class="opening-spark one">✦</span>
+      <span class="opening-spark two">✿</span>
+      <span class="opening-spark three">⌁</span>
+      <div class="opening-bread"></div>
+      <div class="opening-bread-caption">叮——面包出炉啦<small>先做面包，再等香味出现</small></div>
+    </div>
+  </div>
+</div>
+
+<div id="deck">
+
+<!-- ============================================================
+     SLIDES 插入区 · 在此处填充所有 <section class="slide ..."> 页面
+     每页模板参考 references/page-patterns.md
+     页面组件参考 references/components.md
+     ============================================================ -->
+
+<section class="slide light" data-slide-id="good-bread" data-title="人生是一块“好吃”的面包" data-theme="light">
+  <div class="chrome"><div class="left"><span>01 / The smell</span><span class="sep"></span><span>人生与面包</span></div><div class="right"><span>01 / 06</span></div></div>
+  <div class="frame split" style="align-items:center">
+    <div data-anim>
+      <div class="tool-doodle">⌁</div>
+      <h1 class="warm-title" style="font-size:6.2vw">人生是一块<br><span style="color:var(--toast)">“好吃”的面包</span></h1>
+      <p class="lead hand" style="max-width:40vw;margin-top:3vh">人生的意义很像面包的香味，<br>你一定是边做，边出现香味。</p>
+    </div>
+    <div class="bread-stage" data-anim>
+      <span class="scribble" style="width:32vw;height:32vw"></span><div class="bread"></div>
+      <div class="worker push"><i class="head"></i><i class="body"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div>
+      <div class="tool-doodle" style="right:5%;top:5%;transform:rotate(20deg)">⌒</div>
+    </div>
+  </div>
+  <div class="foot"><span class="title">不做面包，就不会有香味</span><span>MAKE IT FIRST</span></div>
+</section>
+
+<section class="slide dark" data-slide-id="chef-road" data-title="蚊小西的厨师路" data-theme="dark">
+  <div class="chrome"><div class="left"><span>02 / My kitchen</span><span class="sep"></span><span>厨师路</span></div><div class="right"><span>02 / 06</span></div></div>
+  <div class="chef-road-layout" data-anim>
+    <div class="chef-road-intro">
+      <span class="chef-road-doodle pan">⌒</span>
+      <div class="line-person" aria-hidden="true"></div>
+      <div>
+        <h2 class="warm-title" style="font-size:4.8vw">蚊小西的<br>厨师路</h2>
+        <p class="lead hand" style="margin-top:1.5vh;font-size:clamp(20px,1.65vw,30px)">在我开启大四时，<br>我已经拥有了<br><span style="color:var(--berry)">5 段实习。</span></p>
+      </div>
+      <span class="chef-road-doodle spatula">╱</span>
+    </div>
+    <div class="internship-track">
+      <span class="chef-road-doodle crumbs">···</span>
+      <figure class="internship-card">
+        <img class="internship-photo" src="assets/internships/internship-1.jpg" alt="第一段实习照片">
+        <span class="when">大一暑假</span>
+        <strong>小红书内容运营</strong>
+        <p>第一次进入厨房。</p>
+        <span class="mini-person">⌁</span>
+      </figure>
+      <figure class="internship-card">
+        <img class="internship-photo" src="assets/internships/internship-2.jpg" alt="第二段实习照片">
+        <span class="when">大二</span>
+        <strong>百丽时尚</strong>
+        <p>开始做商业内容。</p>
+        <span class="mini-person">✦</span>
+      </figure>
+      <figure class="internship-card">
+        <img class="internship-photo" src="assets/internships/internship-3.jpg" alt="第三段实习照片">
+        <span class="when">大三上</span>
+        <strong>南山国际传播</strong>
+        <p>英语开始成为工具。</p>
+        <span class="mini-person">⌁</span>
+      </figure>
+      <figure class="internship-card">
+        <img class="internship-photo" src="assets/internships/internship-4.jpg" alt="第四段实习照片">
+        <span class="when">大三下</span>
+        <strong>万兴 AIGC</strong>
+        <p>AI 让我看见新机会。</p>
+        <span class="mini-person">✦</span>
+      </figure>
+      <figure class="internship-card">
+        <img class="internship-photo" src="assets/internships/internship-5.jpg" alt="第五段实习照片">
+        <span class="when">现在</span>
+        <strong>影石创作者运营</strong>
+        <p>学着推动别人做内容。</p>
+        <span class="mini-person">⌁</span>
+      </figure>
+    </div>
+  </div>
+  <div class="foot"><span class="title">每次开火，都多知道一点</span><span>FIVE TRIES</span></div>
+</section>
+
+<section class="slide light" data-slide-id="meaning-of-internships" data-title="实习的意义" data-theme="light">
+  <div class="chrome"><div class="left"><span>03 / Why internship</span><span class="sep"></span><span>实习的意义</span></div><div class="right"><span>03 / 06</span></div></div>
+  <img class="life-photo-bg life-photo-one" src="assets/story/life-1.jpg" alt="" aria-hidden="true">
+  <div class="frame split" style="align-items:center">
+    <div data-anim>
+      <div class="tool-doodle" style="left:-1vw;top:-6vh;transform:rotate(-38deg)">╱</div>
+      <h2 class="warm-title meaning-heading">
+        实习的意义
+        <span class="meaning-subtitle">首先是探索，学习才是其次</span>
+      </h2>
+    </div>
+    <div class="col" data-anim>
+      <div class="reflection"><div class="no">01</div><div><strong>接触真实工作</strong><p>知道行业流程、团队怎么协作、岗位每天究竟在做什么。</p></div></div>
+      <div class="reflection"><div class="no">02</div><div><strong>排除想象里的选项</strong><p>喜欢或不喜欢，都比只靠想象判断更可靠。</p></div></div>
+      <div class="reflection"><div class="no">03</div><div><strong>留下下一条信息</strong><p>每段经历不一定给我最终答案，但会让我知道一点新的东西。</p></div></div>
+    </div>
+  </div>
+  <div class="slide-doodle-person" aria-hidden="true"><div class="line-person"></div></div>
+  <div class="slide-doodle-tool" aria-hidden="true">╱</div>
+  <div class="foot"><span class="title">不一定变厉害，但会更知道自己在做什么</span><span>EXPLORE FIRST</span></div>
+</section>
+
+<section class="slide dark" data-slide-id="dirty-public" data-title="Get your hands dirty；Learn in public，build in public" data-theme="dark">
+  <div class="chrome"><div class="left"><span>04 / Make it visible</span><span class="sep"></span><span>先做再说</span></div><div class="right"><span>04 / 06</span></div></div>
+  <div class="frame split" style="align-items:center">
+    <div data-anim>
+      <h2 class="warm-title" style="font-size:5.5vw">Get your hands dirty</h2>
+      <h3 class="hand" style="font-size:2.5vw;color:#ffe7a2;margin-top:1.2vh">Learn in public，build in public</h3>
+      <p class="lead hand" style="margin-top:3vh;max-width:37vw">不要只看教程、收藏资料、想自己什么时候开始。先把手弄脏，做一个出来。</p>
+    </div>
+    <div data-anim>
+      <div class="social-feed">
+        <div class="social-row"><i class="avatar"></i><div><b>我发了一条 AI 视频</b><br><span>还不完美，但它真的被看见了</span></div><i class="badge">POST</i></div>
+        <div class="social-row"><i class="avatar"></i><div><b>朋友来问：这是怎么做的？</b><br><span>有人开始对我的能力产生兴趣</span></div><i class="badge">ASK</i></div>
+        <div class="social-row"><i class="avatar"></i><div><b>甚至有人愿意付费合作</b><br><span>AI 对我来说，也许是一个机会</span></div><i class="badge">CHANCE</i></div>
+      </div>
+      <div class="proof-gallery" aria-label="AI 视频带来的真实反馈">
+        <img src="assets/story/chat-1.jpg" alt="朋友反馈 AI 视频效果很好">
+        <img src="assets/story/chat-2.jpg" alt="朋友邀请制作 AI 视频">
+      </div>
+    </div>
+  </div>
+  <div class="slide-doodle-person berry" aria-hidden="true"><div class="line-person"></div></div>
+  <div class="slide-doodle-tool" aria-hidden="true">⌁</div>
+  <div class="foot"><span class="title">展示不是炫耀，是让机会找到你</span><span>SHOW THE PROCESS</span></div>
+</section>
+
+<section class="slide light" data-slide-id="result-and-value" data-title="他人所得，非己所失" data-theme="light">
+  <div class="chrome"><div class="left"><span>05 / The hard part</span><span class="sep"></span><span>比较与价值</span></div><div class="right"><span>05 / 06</span></div></div>
+  <figure class="result-photo-card" aria-label="生活照片">
+    <img src="assets/story/life-2.jpg" alt="生活照">
+    <figcaption>我也还在路上</figcaption>
+  </figure>
+  <div class="frame" style="justify-content:center">
+    <div data-anim>
+      <h2 class="warm-title" style="font-size:5.6vw">他人所得，非己所失</h2>
+      <p class="lead hand" style="margin-top:2vh;max-width:65vw">但有没有好的 offer，是一个结果；<br>这四年有没有价值，是另一个问题。</p>
+    </div>
+    <div class="balance" style="margin-top:5vh" data-anim>
+      <div class="side"><h3 class="hand">我想去名气大的公司</h3><p>我想要高薪、平台和被认可。这些期待没有错，我也还没有完全释怀。</p></div>
+      <div class="plus hand">≠</div>
+      <div class="side"><h3 class="hand">我不想否定这四年</h3><p>五段实习、社团、活动、朋友、作品和那些痛苦的经历，都留下了能力和判断。</p></div>
+    </div>
+    <p class="small-truth hand" style="text-align:center;margin-top:4vh;font-size:1.25vw">我还会焦虑，也会不甘心。<br>但我不想在结果到来之前，先替自己宣布失败。</p>
+  </div>
+  <div class="slide-doodle-person" aria-hidden="true"><div class="line-person"></div></div>
+  <div class="foot"><span class="title">努力没有及时回报，不等于它从未发生</span><span>RESULT ≠ WHOLE STORY</span></div>
+</section>
+
+<section class="slide dark hero" data-slide-id="brave-chef" data-title="所以，亲爱的新生，准备好当一个勇敢的厨师了吗" data-theme="dark">
+  <div class="chrome"><div class="left"><span>06 / Your kitchen</span><span class="sep"></span><span>给新生</span></div><div class="right"><span>06 / 06</span></div></div>
+  <div class="frame center" style="position:relative">
+    <div class="bread-stage" style="position:absolute;right:4vw;bottom:2vh;width:42vw;opacity:.4" data-anim>
+      <div class="bread"></div><div class="worker push"><i class="head"></i><i class="body"></i><i class="arm a"></i><i class="arm b"></i><i class="leg a"></i><i class="leg b"></i></div>
+    </div>
+      <div style="position:relative;z-index:2;max-width:78vw" data-anim>
+      <div class="kicker">A small recipe for your first year</div>
+      <h2 class="warm-title" style="font-size:5.2vw">先开始做。<br>做了，才知道香味从哪里来。</h2>
+      <p class="hand final-callout" style="font-size:2.5vw;margin-top:5vh">所以，亲爱的新生，准备好当一个勇敢的厨师了吗</p>
+    </div>
+  </div>
+  <div class="foot"><span class="title">人生是一块“好吃”的面包</span><span>THANK YOU</span></div>
+</section>
+
+</div>
+
+<div class="internship-preview" aria-hidden="true">
+  <img alt="">
+</div>
+
+<div id="nav"></div>
+
+<!-- 演讲备注：每页一条，id 必须与 section[data-slide-id] 一致。见 references/presenter-mode.md -->
+<script>
+const SPEAKER_NOTES = [
+  {
+    id:'good-bread', title:'人生是一块“好吃”的面包', section:'主题', minutes:1.7,
+    purpose:'讲清楚你的核心比喻：意义不是开始前就出现，而是边做边出现。',
+    talk:[
+      '大家好，我是英语专业的蚊小西。今天我想讲的不是一套标准的职业规划，因为我自己到现在也没有完全确定目标职业。',
+      '我很喜欢一个比喻：人生是一块好吃的面包。人生的意义很像面包的香味，你一定是边做，边出现香味。',
+      '做面包之前，你不可能提前闻到香味。你只能先揉面、发酵、烘烤，中间可能还会失败，然后在过程中慢慢知道：原来我喜欢这个味道，或者原来我不喜欢这个过程。',
+      '我自己的大学也差不多。我没有一张特别清晰的路线图，但我一直在做一些事情。今天我想把这些事情讲给大家听。'
+    ],
+    transition:'先从我怎样进入不同的厨房讲起。',
+    delivery:'这一页是全场的情绪基调，温柔一点，不要急着讲道理。'
+  },
+  {
+    id:'chef-road', title:'蚊小西的厨师路；在我开启我的大四时，我已经拥有了5段实习', section:'经历', minutes:2.9,
+    purpose:'用五段实习和学校经历说明：你的路径不是提前规划好的，而是被兴趣、机会和当时的判断推着往前走。',
+    talk:[
+      '我大一的时候就想做新媒体，参加了学校融媒体中心视频部，做策划、拍摄和剪辑；同时参加了街舞社，那个选择主要因为兴趣，也因此认识了一些很珍贵的朋友。',
+      '大一暑假，我通过朋友推荐去做了小红书内容运营。现在回头看，我不一定建议所有人大一都去实习。除非机会特别适合，否则大一也可以用来旅行、体验大学、培养兴趣。',
+      '大二，我做百丽时尚的短视频剪辑，开始接触商业和电商内容。大三上，我去了南山融媒体中心国际传播部，英语专业的优势第一次变得具体起来。',
+      '大三下，我在万兴科技做 AIGC 内容运营。那时候我和朋友参加 AI 比赛，开始接触 AI 图片和视频生成。AI 帮我做作品、提高效率，也让我第一次认真思考 AI 可能是我的机会。',
+      '现在这段是在影石做创作者运营。我当时也拿到了百度 AI 方向的 offer，但我想补充内容之外的沟通、运营和推动能力，所以选择去体验怎样推动别人生产内容。',
+      '这五段经历不是一条特别垂直、特别漂亮的路线，但它们都让我知道了一点新的东西。'
+    ],
+    transition:'这些经历让我最想说的，恰恰是实习到底有什么用。',
+    delivery:'公司名称可以说，但不要把重点讲成简历朗读。重点是每一次为什么去、带走了什么。'
+  },
+  {
+    id:'meaning-of-internships', title:'实习的意义；首先是探索，学习才是其次', section:'实习', minutes:1.9,
+    purpose:'把实习从“越早越好、越多越好”拉回到职业探索：接触真实工作、排除选项、形成判断。',
+    talk:[
+      '我现在越来越觉得，实习首先是职业探索的过程，其次才是学习的过程。',
+      '实习不一定像培训班一样有人手把手教你，也不一定每一次都能让你技术大幅提升。但它会让你接触真实工作流程、团队协作和岗位日常。',
+      '你会知道自己喜不喜欢一个行业，适不适合一种工作方式，也会排除一些原本只存在于想象里的选项。',
+      '所以不要只因为别人都在实习，就觉得自己也必须马上开始。每次实习之前可以先问自己：我想验证什么？想训练什么？想知道自己喜欢还是不喜欢什么？',
+      '如果一段经历结束以后，你比开始时多知道一点东西，它就没有完全白费。'
+    ],
+    transition:'除了进入真实环境，我也很喜欢一个更主动的动作：先做，再把它展示出来。',
+    delivery:'这页是最适合提醒新生不要把实习当成竞速的地方。'
+  },
+  {
+    id:'dirty-public', title:'Get your hands dirty；Learn in public，build in public', section:'行动', minutes:2.0,
+    purpose:'引入你喜欢的两句话，并用 AI 视频公开展示的真实经历说明：行动和展示会带来反馈、关系与机会。',
+    talk:[
+      '我很喜欢一个博主张咋啦说过的两句话：Get your hands dirty；Learn in public，build in public。',
+      '我理解的第一句话是，不要只看教程、收藏资料、想自己什么时候开始，而是先真正做一个东西。做得不好也没关系，先把手弄脏。',
+      '第二句话是，我们可以适当地把正在学习和做的东西展示出来。展示不是炫耀，它能督促自己，也能让别人知道你在做什么。',
+      '比如我开始在朋友圈发 AI 视频之后，有几个朋友来问我是怎么做的，甚至有人愿意付钱让我帮他们做视频。那一刻我意识到，AI 对我来说可能不只是兴趣，也可能是一个机会。',
+      '所以我特别想告诉大家：开始做本身就成功了一半。你不用等到作品完美、方向确定、能力足够强以后，才允许自己被看见。'
+    ],
+    transition:'但我也想诚实地说，行动并不会自动带来一个理想结果。我依然会焦虑。',
+    delivery:'英文说慢一点，给听众反应时间；讲 AI 视频的地方要具体、自然，不要讲成商业案例。'
+  },
+  {
+    id:'result-and-value', title:'他人所得，非己所失；有没有好的offer，是一个结果；这四年有没有价值，是另一个问题', section:'焦虑', minutes:2.4,
+    purpose:'保留真实的不甘心：你想去名企和高薪公司，也没有完全释怀，但不把结果等同于四年价值。',
+    talk:[
+      '我曾经非常想去字节。以前是不敢投，后来实习越来越多，我反而越来越清楚地看到它的门槛，于是开始觉得，投了也进不去。',
+      '看到学妹去了比我现在更好的公司，看到朋友有新成绩，我还是会焦虑。我知道“他人所得，非己所失”，但知道道理不代表情绪会立刻消失。',
+      '我也很想找到喜欢的、高薪的、平台好的工作。如果最后去不了名气大的公司，我会不甘心。因为我几乎为了一个好工作努力了四年，每个暑假都在做事情。',
+      '而且因为实习和课外，我的绩点没有达到过去的水平。毕业时我会觉得自己好像忙了四年，却没有换来一个足够漂亮的结果，甚至怀疑自己是不是把大学混完了。',
+      '但我现在想把两件事分开：有没有好的 offer，是一个结果；这四年有没有价值，是另一个问题。',
+      '我还没有释怀，也不需要假装释怀。但我不想在结果真正到来之前，先替自己宣布失败。'
+    ],
+    transition:'我不想给大家一张宏大的职业规划表，只想留下几个可以马上开始的小动作。',
+    delivery:'这一页不要急着圆回来，允许它有一点停顿和未完成感。'
+  },
+  {
+    id:'brave-chef', title:'所以，亲爱的新生，准备好当一个勇敢的厨师了吗', section:'结尾', minutes:2.0,
+    purpose:'用三个低门槛动作收束演讲，回到面包和厨师的主题。',
+    talk:[
+      '我想给大家三个很简单的建议。第一，不要等目标完全清晰以后才开始。大一不是职业终审现场。',
+      '第二，不要只因为别人都在实习就去实习。每次尝试前，先想想自己想验证什么。',
+      '第三，一定要先开始做。参加一个组织，完成一个作品，尝试一个 AI 工具，公开展示一次。开始做本身就成功了一半。',
+      '我现在依然没有完全确定目标，也依然会焦虑。但我开始接受，人生可能不是先有一张完整的地图，我们才敢出发。',
+      '所以，亲爱的新生，准备好当一个勇敢的厨师了吗？先做你的面包。香味会在过程中慢慢出现。'
+    ],
+    transition:'最后一句说完停顿两秒，再说“谢谢大家”。',
+    cue:'落版文字保持 3 秒以上，让观众读完。',
+    delivery:'结尾不要加速，带一点笑意，但不要把前面的焦虑轻轻带过。'
+  }
+];
+window.__SPEAKER_NOTES__ = SPEAKER_NOTES;
+</script>
+
+<script>
+/* =============== WebGL 双背景 ===============
+   深色页：Holographic Dispersion（全息色散 · 钛金暗流）—— 彩虹微扰、鼠标径向涟漪
+   浅色页：Spiral Vortex（旋转涡流 · 银色珍珠）—— domain-warp 流动、无中心
+   修改风格请参考 references/webgl-backgrounds.md
+*/
+const VS = `attribute vec2 position;void main(){gl_Position=vec4(position,0.0,1.0);}`;
+
+const FS_DARK = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+vec3 palette(float t,vec3 a,vec3 b,vec3 c,vec3 d){return a+b*cos(6.28318*(c*t+d));}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv*2.0-1.0;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse*2.0-1.0;m.x*=u_resolution.x/u_resolution.y;
+  float md=length(p-m);
+  float mr=sin(md*15.0-u_time*4.0)*exp(-md*3.0);p+=mr*0.08;
+  vec2 p0=p;
+  for(float i=1.0;i<4.0;i++){
+    p.x+=0.1/i*sin(i*3.0*p.y+u_time*0.4)+0.05;
+    p.y+=0.1/i*cos(i*2.0*p.x+u_time*0.3)-0.05;
+  }
+  float r=length(p);float ang=atan(p.y,p.x);
+  vec3 a=vec3(0.12,0.12,0.13);
+  vec3 b=vec3(0.03,0.04,0.05);
+  vec3 c=vec3(1.0,1.0,1.0);
+  vec3 d=vec3(0.1,0.2,0.4);
+  vec3 col=palette(r*1.5+p0.x*0.5+u_time*0.1,a,b,c,d);
+  float disp=sin(r*25.0-u_time*1.5+ang*2.0)*0.5+0.5;
+  col+=vec3(disp*0.015,disp*0.01,disp*0.02);
+  float hi=pow(sin(p.x*4.0+p.y*3.0+u_time)*0.5+0.5,8.0);
+  col+=hi*0.08;
+  vec3 base=vec3(0.05,0.05,0.06);
+  col=mix(base,col,0.85);
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const FS_LIGHT = `precision highp float;
+uniform vec2 u_resolution;uniform float u_time;uniform vec2 u_mouse;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  float a=hash(i),b=hash(i+vec2(1,0));
+  float c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  vec2 u=f*f*(3.0-2.0*f);
+  return mix(a,b,u.x)+(c-a)*u.y*(1.0-u.x)+(d-b)*u.x*u.y;
+}
+float fbm(vec2 p){
+  float v=0.0,a=0.5;
+  mat2 m=mat2(0.80,0.60,-0.60,0.80);
+  for(int i=0;i<5;i++){v+=a*noise(p);p=m*p*2.02;a*=0.5;}
+  return v;
+}
+void main(){
+  vec2 uv=gl_FragCoord.xy/u_resolution.xy;
+  vec2 p=uv;p.x*=u_resolution.x/u_resolution.y;
+  vec2 m=u_mouse;m.x*=u_resolution.x/u_resolution.y;
+  vec2 md=p-m;float dl=length(md);
+  p+=normalize(md+vec2(0.0001))*exp(-dl*5.0)*0.03;
+  vec2 q=vec2(fbm(p*1.8+u_time*0.07),fbm(p*1.8+vec2(5.2,1.3)+u_time*0.06));
+  vec2 r=vec2(fbm(p*2.0+q*1.3+vec2(1.7,9.2)+u_time*0.05),
+              fbm(p*2.0+q*1.3+vec2(8.3,2.8)+u_time*0.04));
+  float f=fbm(p*2.2+r*1.5);
+  vec3 silverDark=vec3(0.86,0.85,0.84);
+  vec3 paper=vec3(0.955,0.945,0.925);
+  vec3 col=mix(silverDark,paper,f);
+  float ph=r.x*2.2+u_time*0.35;
+  col+=vec3(0.78,0.62,0.92)*sin(ph)*0.055;
+  col+=vec3(0.55,0.72,0.95)*sin(ph*0.8+2.0)*0.05;
+  float hl=smoothstep(0.48,0.92,f);
+  col+=hl*0.06;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+const mouse={x:0.5,y:0.5};
+addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight});
+
+function bootGL(canvasId, fsSrc){
+  const canvas=document.getElementById(canvasId);
+  const gl=canvas.getContext('webgl',{alpha:false,antialias:true});
+  if(!gl) return ()=>false;
+  const mk=(t,s)=>{const sh=gl.createShader(t);gl.shaderSource(sh,s);gl.compileShader(sh);return sh};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,mk(gl.VERTEX_SHADER,VS));
+  gl.attachShader(prog,mk(gl.FRAGMENT_SHADER,fsSrc));
+  gl.linkProgram(prog);gl.useProgram(prog);
+  const buf=gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
+  const pos=gl.getAttribLocation(prog,'position');
+  gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);
+  const lRes=gl.getUniformLocation(prog,'u_resolution');
+  const lT=gl.getUniformLocation(prog,'u_time');
+  const lM=gl.getUniformLocation(prog,'u_mouse');
+  const resize=()=>{
+    const d=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=innerWidth*d;canvas.height=innerHeight*d;
+    gl.viewport(0,0,canvas.width,canvas.height);
+  };
+  addEventListener('resize',resize);resize();
+  return (tSec)=>{
+    gl.uniform2f(lRes,canvas.width,canvas.height);
+    gl.uniform1f(lT,tSec);
+    gl.uniform2f(lM,mouse.x,1-mouse.y);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    return true;
+  };
+}
+let drawDark=null, drawLight=null, glRAF=0, glT0=Date.now();
+function startGL(){
+  if(window.__lowPowerMode || glRAF) return;
+  if(!drawDark) drawDark=bootGL('bg-dark',FS_DARK);
+  if(!drawLight) drawLight=bootGL('bg-light',FS_LIGHT);
+  glT0=Date.now();
+  function loop(){
+    if(window.__lowPowerMode){glRAF=0;return;}
+    const t=(Date.now()-glT0)/1000;
+    drawDark(t);drawLight(t);
+    glRAF=requestAnimationFrame(loop);
+  }
+  glRAF=requestAnimationFrame(loop);
+}
+function stopGL(){
+  if(glRAF) cancelAnimationFrame(glRAF);
+  glRAF=0;
+}
+startGL();
+addEventListener('ppt-low-power-change', e=>{e.detail.on ? stopGL() : startGL();});
+
+// =============== 导航（翻页 / 圆点 / 键盘 / 滚轮 / 触屏） ===============
+const deck=document.getElementById('deck');
+const slides=deck.querySelectorAll('.slide');
+const nav=document.getElementById('nav');
+let idx=0,total=slides.length,lock=false;
+
+// 关键：矫正 deck 宽度为 total * 100vw，否则翻页会错位
+deck.style.width=(total*100)+'vw';
+
+slides.forEach((s,i)=>{
+  const b=document.createElement('button');
+  b.className='dot';b.dataset.i=i;b.setAttribute('aria-label','Page '+(i+1));
+  b.onclick=()=>go(i);
+  nav.appendChild(b);
+});
+
+function go(n,opts={}){
+  if(lock&&!opts.force)return;
+  idx=Math.max(0,Math.min(total-1,n));
+  window.__currentSlideIndex = idx;
+  deck.style.transform=`translateX(${-idx*100}vw)`;
+  nav.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  /* 主题切换：优先读 data-theme，其次从 class（light/dark）推断 */
+  const el=slides[idx];
+  const th=el.dataset.theme || (el.classList.contains('light')?'light':(el.classList.contains('dark')?'dark':'dark'));
+  document.body.classList.toggle('light-bg',th==='light');
+  /* 动效：翻页过渡中段触发当前页的入场动画（由 motion-boot 注册） */
+  if(window.__playSlide) setTimeout(()=>window.__playSlide(idx), 450);
+  window.__pptPresenter?.onSlideChange(idx);
+  if(!opts.force){lock=true;setTimeout(()=>lock=false,700);}
+}
+
+/* =============== ESC 索引视图 =============== */
+let overviewOn=false;
+const ov=document.createElement('div');
+ov.id='overview';
+ov.style.cssText='position:fixed;inset:0;z-index:100;background:rgba(var(--ink-rgb),.92);backdrop-filter:blur(12px);display:none;overflow-y:auto;padding:4vh 4vw';
+document.body.appendChild(ov);
+
+function buildOverview(){
+  ov.innerHTML='';
+  const grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:2vh 1.6vw;max-width:90vw;margin:0 auto';
+  slides.forEach((s,i)=>{
+    const card=document.createElement('div');
+    card.style.cssText='cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid '+(i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)')+';transition:border-color .2s';
+    card.onmouseenter=()=>card.style.borderColor='rgba(var(--paper-rgb),.6)';
+    card.onmouseleave=()=>card.style.borderColor=i===idx?'rgba(var(--paper-rgb),.8)':'rgba(var(--paper-rgb),.15)';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='width:100%;aspect-ratio:16/9;overflow:hidden;position:relative;pointer-events:none;background:'+(s.classList.contains('light')?'var(--paper)':'var(--ink)');
+    const clone=s.cloneNode(true);
+    clone.style.cssText='width:100vw;height:100vh;transform:scale('+(1/4.5)+');transform-origin:top left;position:absolute;top:0;left:0;pointer-events:none';
+    wrap.appendChild(clone);
+    const label=document.createElement('div');
+    label.style.cssText='padding:6px 10px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--paper);opacity:.7';
+    label.textContent=window.__pptPresenter?.slideLabel(i) || ((i+1)+' / '+total);
+    card.appendChild(wrap);
+    card.appendChild(label);
+    card.onclick=()=>{toggleOverview();go(i)};
+    grid.appendChild(card);
+  });
+  ov.appendChild(grid);
+}
+
+function toggleOverview(){
+  overviewOn=!overviewOn;
+  if(overviewOn){buildOverview();ov.style.display='block';}
+  else{ov.style.display='none';}
+}
+
+/* =============== 演讲者模式 / 观众屏同步 =============== */
+window.__pptPresenter=(()=>{
+  const query=new URLSearchParams(location.search);
+  const requestedMode=query.get('mode')||'deck';
+  const originalTitle=document.title;
+  const notes=()=>Array.isArray(window.__SPEAKER_NOTES__)?window.__SPEAKER_NOTES__:[];
+  const slideId=i=>slides[i]?.dataset.slideId||`slide-${String(i+1).padStart(2,'0')}`;
+  const storageKey=name=>`guizang-ppt-${name}:${location.pathname}`;
+  let mode='deck',session=query.get('session')||Math.random().toString(36).slice(2),audienceWindow=null;
+  let channel=null,transportReady=false,popupBlocked=false,audienceOpenedAt=0,lastAckAt=0,lastAckIndex=-1,lastAckSeq=-1,seq=0,lastPingAt=0;
+  let renderedNoteId='',saveTimer=0,noteSize=Number(localStorage.getItem('guizang-ppt-note-size')||17),presenterFrameObserver=null;
+  let elapsed=0,timerRunning=false,timerStartedAt=0,timedSlideIndex=idx,slideTimerStartedAt=0,slideElapsed=Array(total).fill(0);
+  let rehearsalActive=false,presenterOverviewOn=false,lowPowerBeforePresenter=window.__lowPowerMode;
+  let layoutMode=localStorage.getItem(storageKey('layout'))||'balanced';
+  let autoEnabled=localStorage.getItem(storageKey('auto-enabled'))==='1';
+  let autoGlobalSeconds=Math.max(0,Number(localStorage.getItem(storageKey('auto-seconds'))||0));
+  let autoDeadline=0,autoRemainingMs=0;
+  let screenMode='normal',audienceFrozen=false;
+  let annotationTool='none',annotationPointerDown=false,annotationStart=null,draftCircle=null,circles=[],audienceCircles=[];
+  let laserPoint=null,audienceLaser=null,laserHideAt=0,audienceLaserHideAt=0,lastLaserSent=0;
+  const seenNonces=[],seenNonceSet=new Set();
+  const syncKey=()=>`guizang-ppt-sync:${location.pathname}:${session}`;
+  const channelName=()=>`guizang-ppt:${location.pathname}:${session}`;
+
+  function noteAt(i){
+    const id=slideId(i);
+    return notes().find(n=>n.id===id)||{id,title:slides[i]?.dataset.title||`第 ${i+1} 页`,purpose:'—',talk:[],transition:''};
+  }
+  function slideLabel(i){return `${i+1} / ${total} · ${noteAt(i).title||slideId(i)}`;}
+  function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+  function valueLines(value){
+    if(Array.isArray(value))return value.filter(Boolean).map(x=>`• ${x}`).join('\n');
+    return value?String(value):'';
+  }
+  function generatedNote(n){
+    const parts=[];
+    if(Array.isArray(n.talk)&&n.talk.length)parts.push(`【讲述要点】\n${valueLines(n.talk)}`);
+    if(n.transition)parts.push(`【转场】\n${n.transition}`);
+    const optional=[['舞台提示',n.cue],['互动',n.interaction],['表达提示',n.delivery],['翻页时机',n.advance],['备用方案',n.fallback],['读音提醒',n.pronunciation]];
+    optional.forEach(([label,value])=>{const text=valueLines(value);if(text)parts.push(`【${label}】\n${text}`);});
+    return parts.join('\n\n')||'—';
+  }
+  function noteStorageKey(id){return `guizang-ppt-note:${location.pathname}:${id}`;}
+  function loadNoteValue(id,i,n){
+    const saved=localStorage.getItem(noteStorageKey(id));
+    if(saved!==null)return saved;
+    const prefix=window.__PPT_LEGACY_NOTE_KEY__;
+    if(prefix){
+      const legacy=localStorage.getItem(`${prefix}:${i}`);
+      if(legacy!==null){localStorage.setItem(noteStorageKey(id),legacy);return legacy;}
+    }
+    return generatedNote(n);
+  }
+  function frameUrl(targetMode,i){
+    const url=new URL(location.href);url.hash='';
+    url.searchParams.set('mode',targetMode);url.searchParams.set('session',session);url.searchParams.set('slide',String(i+1));
+    return url.href;
+  }
+  function postPreviewGoto(frame,i){
+    try{frame.contentWindow?.postMessage({__guizangPptSync:1,session,role:'presenter',type:'preview-goto',index:i},'*');}catch(e){}
+  }
+  function updatePreviewFrame(frame,i){
+    frame.dataset.slide=String(i);
+    if(!frame.dataset.previewBound){frame.dataset.previewBound='1';frame.addEventListener('load',()=>postPreviewGoto(frame,Number(frame.dataset.slide)));}
+    if(!frame.getAttribute('src'))frame.src=frameUrl('preview',i);else postPreviewGoto(frame,i);
+  }
+  function plannedMsAt(i){
+    const minutes=Number(noteAt(i).minutes);
+    return Number.isFinite(minutes)&&minutes>0?minutes*60000:null;
+  }
+  function totalPlannedMs(){
+    const values=Array.from({length:total},(_,i)=>plannedMsAt(i));
+    return values.length&&values.every(Number.isFinite)?values.reduce((sum,x)=>sum+x,0):null;
+  }
+  function sectionInfo(i){
+    const name=String(noteAt(i).section||'').trim();
+    if(!name)return null;
+    let first=i,last=i;
+    while(first>0&&String(noteAt(first-1).section||'').trim()===name)first--;
+    while(last<total-1&&String(noteAt(last+1).section||'').trim()===name)last++;
+    const targets=[];for(let x=first;x<=last;x++)targets.push(plannedMsAt(x));
+    const planned=targets.every(Number.isFinite)?targets.reduce((sum,x)=>sum+x,0):null;
+    const used=slideElapsed.slice(first,last+1).reduce((sum,x)=>sum+x,0)+(timerRunning&&timedSlideIndex>=first&&timedSlideIndex<=last?Date.now()-slideTimerStartedAt:0);
+    return{name,position:i-first+1,count:last-first+1,planned,used};
+  }
+  function durationText(ms){
+    const value=Math.max(0,Math.round(Number(ms)||0)),seconds=Math.floor(value/1000);
+    const hours=Math.floor(seconds/3600),minutes=Math.floor((seconds%3600)/60),secs=seconds%60;
+    return hours?`${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(secs).padStart(2,'0')}`:`${String(minutes).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  }
+  function signedDuration(ms){return `${ms>=0?'+':'−'}${durationText(Math.abs(ms))}`;}
+  function clockTime(timestamp){return new Date(timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+
+  function fitFrame(frame){
+    const viewport=frame?.closest('.ppt-frame-viewport');
+    if(!viewport)return;
+    const availableWidth=viewport.clientWidth,availableHeight=viewport.clientHeight;
+    if(!availableWidth||!availableHeight)return;
+    const width=Math.min(availableWidth,availableHeight*(16/9)),height=width*(9/16);
+    frame.style.width=`${width}px`;frame.style.height=`${height}px`;
+    if(frame.id==='ppt-current-frame')sizeInk(document.getElementById('ppt-presenter-ink'),width,height);
+  }
+  function fitPresenterFrames(){
+    fitFrame(document.getElementById('ppt-current-frame'));
+    fitFrame(document.getElementById('ppt-next-frame'));
+  }
+  function sizeInk(canvas,width,height){
+    if(!canvas||!width||!height)return;
+    canvas.style.width=`${width}px`;canvas.style.height=`${height}px`;
+    const dpr=Math.min(devicePixelRatio||1,2),pixelWidth=Math.round(width*dpr),pixelHeight=Math.round(height*dpr);
+    if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;}
+  }
+  function drawEllipse(ctx,circle,width,height,alpha=1){
+    const x1=circle.x1*width,y1=circle.y1*height,x2=circle.x2*width,y2=circle.y2*height;
+    ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle='#ff4f59';ctx.lineWidth=Math.max(3,width*.004);ctx.lineCap='round';
+    ctx.beginPath();ctx.ellipse((x1+x2)/2,(y1+y2)/2,Math.abs(x2-x1)/2,Math.abs(y2-y1)/2,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+  }
+  function drawInk(canvas,list,laser,draft){
+    if(!canvas)return;const width=canvas.clientWidth,height=canvas.clientHeight;if(!width||!height)return;
+    sizeInk(canvas,width,height);const dpr=canvas.width/width,ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+    (list||[]).forEach(circle=>drawEllipse(ctx,circle,width,height));
+    if(draft)drawEllipse(ctx,draft,width,height,.72);
+    if(laser){
+      const x=laser.x*width,y=laser.y*height,r=Math.max(6,width*.007);
+      const glow=ctx.createRadialGradient(x,y,0,x,y,r*2.8);glow.addColorStop(0,'rgba(255,255,255,.98)');glow.addColorStop(.2,'rgba(255,64,72,.98)');glow.addColorStop(1,'rgba(255,64,72,0)');
+      ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,r*2.8,0,Math.PI*2);ctx.fill();
+    }
+  }
+  function renderInks(){
+    const now=Date.now();if(now>laserHideAt)laserPoint=null;if(now>audienceLaserHideAt)audienceLaser=null;
+    drawInk(document.getElementById('ppt-presenter-ink'),circles,laserPoint,draftCircle);
+    drawInk(document.getElementById('ppt-audience-ink'),audienceCircles,audienceLaser,null);
+  }
+  function setAnnotationTool(tool){
+    annotationTool=annotationTool===tool?'none':tool;annotationPointerDown=false;draftCircle=null;
+    const canvas=document.getElementById('ppt-presenter-ink');canvas?.classList.toggle('is-active',annotationTool!=='none');
+    document.querySelectorAll('[data-ppt-tool]').forEach(button=>button.classList.toggle('is-active',button.dataset.pptTool===annotationTool));
+    renderInks();
+  }
+  function annotationPoint(event){
+    const canvas=event.currentTarget,rect=canvas.getBoundingClientRect();
+    return{x:Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width)),y:Math.max(0,Math.min(1,(event.clientY-rect.top)/rect.height))};
+  }
+  function onAnnotationPointerDown(event){
+    if(annotationTool!=='circle')return;event.preventDefault();annotationPointerDown=true;annotationStart=annotationPoint(event);draftCircle={x1:annotationStart.x,y1:annotationStart.y,x2:annotationStart.x,y2:annotationStart.y};event.currentTarget.setPointerCapture?.(event.pointerId);renderInks();
+  }
+  function onAnnotationPointerMove(event){
+    if(annotationTool==='laser'){
+      const point=annotationPoint(event);laserPoint=point;laserHideAt=Date.now()+650;
+      if(Date.now()-lastLaserSent>32){lastLaserSent=Date.now();emit({type:'laser',index:idx,point},{persist:false});}renderInks();return;
+    }
+    if(annotationTool==='circle'&&annotationPointerDown&&draftCircle){const point=annotationPoint(event);draftCircle.x2=point.x;draftCircle.y2=point.y;renderInks();}
+  }
+  function onAnnotationPointerUp(event){
+    if(annotationTool!=='circle'||!annotationPointerDown||!draftCircle)return;event.preventDefault();annotationPointerDown=false;
+    const circle={...draftCircle};draftCircle=null;
+    if(Math.abs(circle.x2-circle.x1)>.012&&Math.abs(circle.y2-circle.y1)>.012){circles.push(circle);emit({type:'circle',index:idx,circle});}
+    renderInks();
+  }
+  function onAnnotationPointerLeave(){
+    if(annotationTool==='laser'){laserPoint=null;emit({type:'laser',index:idx,point:null},{persist:false});renderInks();}
+  }
+  function clearAnnotations(broadcast=true){circles=[];draftCircle=null;laserPoint=null;if(broadcast)emit({type:'clear',index:idx});renderInks();}
+
+  function buildPresenterOverview(){
+    const grid=document.getElementById('ppt-presenter-overview-grid');if(!grid)return;grid.innerHTML='';
+    slides.forEach((slide,i)=>{
+      const n=noteAt(i),button=document.createElement('button');button.type='button';button.className=`ppt-overview-page${i===idx?' is-current':''}`;
+      button.innerHTML=`<span class="ppt-overview-page-no">${String(i+1).padStart(2,'0')} / ${String(total).padStart(2,'0')}</span><span class="ppt-overview-page-title">${escapeHTML(n.title||slideId(i))}</span><span class="ppt-overview-page-meta"><span>${escapeHTML(n.section||'未分组')}</span><span>${Math.round(((i+1)/total)*100)}%</span></span>`;
+      button.onclick=()=>{togglePresenterOverview(false);go(i,{force:true});};grid.appendChild(button);
+    });
+    requestAnimationFrame(()=>grid.querySelector('.is-current')?.scrollIntoView({block:'nearest',inline:'nearest'}));
+  }
+  function togglePresenterOverview(force){
+    presenterOverviewOn=typeof force==='boolean'?force:!presenterOverviewOn;
+    if(presenterOverviewOn&&annotationTool!=='none')setAnnotationTool('none');
+    const stack=document.querySelector('.ppt-preview-stack'),overview=document.getElementById('ppt-presenter-overview');
+    stack?.classList.toggle('is-overview',presenterOverviewOn);if(overview)overview.hidden=!presenterOverviewOn;
+    const button=document.getElementById('ppt-grid');if(button){button.classList.toggle('is-active',presenterOverviewOn);button.setAttribute('aria-pressed',String(presenterOverviewOn));}
+    if(presenterOverviewOn)buildPresenterOverview();else requestAnimationFrame(fitPresenterFrames);renderAutoState();
+  }
+
+  function mountShell(){
+    if(document.getElementById('ppt-presenter'))return;
+    document.body.insertAdjacentHTML('beforeend',`<div id="ppt-presenter" data-layout="${layoutMode}" aria-label="演讲者视图">
+      <div class="ppt-presenter-top"><div><div class="ppt-presenter-brand">演讲者视图</div><div class="ppt-presenter-meta"><span id="ppt-plan"></span><span id="ppt-section" hidden></span></div></div><div class="ppt-presenter-meta"><span id="ppt-sync" class="ppt-sync" data-state="disconnected" title="表示观众页面的软件同步状态，不代表 HDMI 等物理线缆状态">观众屏 · 未连接</span><button id="ppt-auto-toggle" class="ppt-ui-btn ppt-auto-state" type="button">自动翻页 · 关闭</button><button id="ppt-preflight" class="ppt-ui-btn" type="button">检查</button><button id="ppt-settings" class="ppt-ui-btn" type="button">设置</button><button id="ppt-reopen" class="ppt-ui-btn" type="button">重新打开观众屏</button><button id="ppt-exit" class="ppt-ui-btn" type="button">退出</button></div></div>
+      <div class="ppt-presenter-main"><div class="ppt-preview-stack"><div class="ppt-stage-card"><div class="ppt-stage-label"><span>当前页</span><span class="ppt-annotation-tools"><button id="ppt-grid" class="ppt-ui-btn ppt-grid-btn" type="button" aria-pressed="false" title="宫格选页（Esc）"><span class="ppt-grid-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></span>宫格</button><button class="ppt-ui-btn" data-ppt-tool="laser" type="button" title="激光笔（L）">激光</button><button class="ppt-ui-btn" data-ppt-tool="circle" type="button" title="圈选（C）">圈选</button><button id="ppt-ink-clear" class="ppt-ui-btn ppt-clear-btn" type="button" title="清除标记（X）">清除</button></span><span id="ppt-current-label"></span></div><div class="ppt-frame-viewport"><iframe id="ppt-current-frame" class="ppt-frame" title="当前页预览"></iframe><canvas id="ppt-presenter-ink" class="ppt-annotation-layer" aria-label="演讲标注层"></canvas></div></div><div class="ppt-stage-card" id="ppt-next-card"><div class="ppt-stage-label"><span>下一页</span><span id="ppt-next-label"></span></div><div class="ppt-frame-viewport"><iframe id="ppt-next-frame" class="ppt-frame ppt-next-frame" title="下一页预览"></iframe></div></div><div id="ppt-presenter-overview" class="ppt-presenter-overview" hidden><div class="ppt-overview-head"><strong>选择页面</strong><button id="ppt-overview-close" class="ppt-ui-btn" type="button">返回预览</button></div><div id="ppt-presenter-overview-grid" class="ppt-overview-grid"></div></div></div>
+      <div class="ppt-notes-card"><div class="ppt-notes-head"><div class="ppt-notes-label">标题</div><div id="ppt-notes-title" class="ppt-notes-title"></div><div class="ppt-purpose-block"><div class="ppt-notes-label">本页目的</div><div id="ppt-notes-purpose" class="ppt-purpose-copy"></div></div><div class="ppt-notes-draft-head"><div><div class="ppt-notes-label">草稿（备注）</div><div id="ppt-note-meta" class="ppt-note-meta"></div></div><span class="ppt-notes-tools"><span id="ppt-saved" class="ppt-saved">已保存</span><button id="ppt-note-smaller" class="ppt-ui-btn" type="button" title="缩小备注字号">A−</button><button id="ppt-note-larger" class="ppt-ui-btn" type="button" title="放大备注字号">A+</button></span></div></div><textarea id="ppt-note-editor" class="ppt-note-editor" spellcheck="false" aria-label="本页演讲备注"></textarea></div></div>
+      <div class="ppt-presenter-bottom"><div class="ppt-time-dashboard"><div class="ppt-time-stat"><span class="ppt-time-label">已进行</span><strong id="ppt-clock" class="ppt-time-value">00:00</strong><span class="ppt-time-hint">总时长</span></div><div class="ppt-time-stat"><span class="ppt-time-label">本页</span><strong id="ppt-slide-clock" class="ppt-time-value">00:00</strong><span id="ppt-slide-plan" class="ppt-time-hint">计划 —</span></div><div id="ppt-slide-status-box" class="ppt-time-stat"><span id="ppt-slide-status-label" class="ppt-time-label">计划</span><strong id="ppt-slide-status" class="ppt-time-value">—</strong><span id="ppt-slide-status-hint" class="ppt-time-hint">未设置</span></div></div><div class="ppt-control-stack"><div class="ppt-controls"><button id="ppt-first" class="ppt-ui-btn" type="button">首页</button><button id="ppt-prev" class="ppt-ui-btn" type="button">上一页</button><button id="ppt-next" class="ppt-ui-btn" type="button">下一页</button><button id="ppt-last" class="ppt-ui-btn" type="button">尾页</button></div><div class="ppt-session-actions"><button id="ppt-timer-toggle" class="ppt-ui-btn" type="button">开始计时</button><button id="ppt-timer-reset" class="ppt-ui-btn" type="button">重置计时</button><button id="ppt-rehearsal" class="ppt-ui-btn" type="button">排练</button></div></div><div class="ppt-page-state"><strong id="ppt-page-count"></strong><span id="ppt-page-percent"></span></div></div>
+      <div id="ppt-dialog" class="ppt-dialog" hidden><div class="ppt-dialog-panel" role="dialog" aria-modal="true"><div class="ppt-dialog-head"><div id="ppt-dialog-title" class="ppt-dialog-title"></div><button id="ppt-dialog-close" class="ppt-ui-btn" type="button">关闭</button></div><div id="ppt-dialog-body" class="ppt-dialog-body"></div></div></div>
+    </div>`);
+    document.getElementById('ppt-reopen').onclick=reopenAudience;
+    document.getElementById('ppt-exit').onclick=exitPresenter;
+    document.getElementById('ppt-preflight').onclick=openPreflight;
+    document.getElementById('ppt-settings').onclick=openSettings;
+    document.getElementById('ppt-first').onclick=()=>go(0,{force:true});
+    document.getElementById('ppt-prev').onclick=()=>go(idx-1,{force:true});
+    document.getElementById('ppt-grid').onclick=()=>togglePresenterOverview();
+    document.getElementById('ppt-overview-close').onclick=()=>togglePresenterOverview(false);
+    document.getElementById('ppt-next').onclick=()=>go(idx+1,{force:true});
+    document.getElementById('ppt-last').onclick=()=>go(idx===total-1?0:total-1,{force:true});
+    document.getElementById('ppt-timer-toggle').onclick=toggleTimer;
+    document.getElementById('ppt-timer-reset').onclick=resetTimer;
+    document.getElementById('ppt-rehearsal').onclick=toggleRehearsal;
+    document.getElementById('ppt-auto-toggle').onclick=toggleAutoAdvance;
+    document.getElementById('ppt-note-smaller').onclick=()=>setNoteSize(noteSize-1);
+    document.getElementById('ppt-note-larger').onclick=()=>setNoteSize(noteSize+1);
+    document.getElementById('ppt-note-editor').addEventListener('input',saveNote);
+    document.querySelectorAll('[data-ppt-tool]').forEach(button=>button.onclick=()=>setAnnotationTool(button.dataset.pptTool));
+    document.getElementById('ppt-ink-clear').onclick=()=>clearAnnotations(true);
+    const ink=document.getElementById('ppt-presenter-ink');
+    ink.addEventListener('pointerdown',onAnnotationPointerDown);ink.addEventListener('pointermove',onAnnotationPointerMove);ink.addEventListener('pointerup',onAnnotationPointerUp);ink.addEventListener('pointercancel',onAnnotationPointerUp);ink.addEventListener('pointerleave',onAnnotationPointerLeave);
+    document.getElementById('ppt-dialog-close').onclick=closeDialog;
+    document.getElementById('ppt-dialog').onclick=event=>{if(event.target.id==='ppt-dialog')closeDialog();};
+    if('ResizeObserver'in window){presenterFrameObserver=new ResizeObserver(()=>requestAnimationFrame(fitPresenterFrames));presenterFrameObserver.observe(document.querySelector('.ppt-preview-stack'));}
+    else addEventListener('resize',fitPresenterFrames);
+    setNoteSize(noteSize,false);applyLayout(layoutMode,false);requestAnimationFrame(fitPresenterFrames);
+  }
+  function updateShell(){
+    if(mode!=='presenter')return;mountShell();
+    const n=noteAt(idx),next=Math.min(idx+1,total-1),id=slideId(idx),editor=document.getElementById('ppt-note-editor');
+    const currentFrame=document.getElementById('ppt-current-frame'),nextFrame=document.getElementById('ppt-next-frame');
+    if(currentFrame.dataset.slide!==String(idx))updatePreviewFrame(currentFrame,idx);
+    if(nextFrame.dataset.slide!==String(next))updatePreviewFrame(nextFrame,next);
+    document.getElementById('ppt-next-card').classList.toggle('is-end',idx===total-1);
+    document.getElementById('ppt-current-label').textContent=`${idx+1} / ${total}`;
+    document.getElementById('ppt-next-label').textContent=idx===total-1?'已到尾页':`${next+1} / ${total}`;
+    document.getElementById('ppt-notes-title').textContent=n.title||`第 ${idx+1} 页`;
+    document.getElementById('ppt-notes-purpose').textContent=n.purpose||'—';
+    const target=plannedMsAt(idx);document.getElementById('ppt-note-meta').textContent=`建议 ${target?(target/60000).toFixed(1):'—'} 分钟 · ${id}`;
+    document.getElementById('ppt-page-count').textContent=`第 ${idx+1} / ${total} 页`;
+    document.getElementById('ppt-page-percent').textContent=`${Math.round(((idx+1)/total)*100)}%`;
+    document.getElementById('ppt-first').disabled=idx===0;document.getElementById('ppt-prev').disabled=idx===0;document.getElementById('ppt-next').disabled=idx===total-1;
+    document.getElementById('ppt-last').textContent=idx===total-1?'重新开始':'尾页';
+    if(renderedNoteId!==id){renderedNoteId=id;editor.value=loadNoteValue(id,idx,n);editor.scrollTop=0;document.getElementById('ppt-saved').textContent='已保存';}
+    if(presenterOverviewOn)buildPresenterOverview();requestAnimationFrame(fitPresenterFrames);renderTimer();updateSyncStatus();
+  }
+  function saveNote(){
+    const saved=document.getElementById('ppt-saved');saved.textContent='保存中…';saved.classList.remove('ppt-saved');clearTimeout(saveTimer);
+    saveTimer=setTimeout(()=>{localStorage.setItem(noteStorageKey(renderedNoteId),document.getElementById('ppt-note-editor').value);saved.textContent='已保存';saved.classList.add('ppt-saved');},300);
+  }
+  function setNoteSize(value,persist=true){noteSize=Math.max(14,Math.min(26,value));document.documentElement.style.setProperty('--ppt-note-size',`${noteSize}px`);if(persist)localStorage.setItem('guizang-ppt-note-size',String(noteSize));}
+  function currentElapsed(){return elapsed+(timerRunning?Date.now()-timerStartedAt:0);}
+  function currentSlideElapsed(i=idx){return slideElapsed[i]+(timerRunning&&timedSlideIndex===i?Date.now()-slideTimerStartedAt:0);}
+  function commitRunningTime(now=Date.now()){
+    if(!timerRunning)return;elapsed+=now-timerStartedAt;slideElapsed[timedSlideIndex]+=now-slideTimerStartedAt;timerStartedAt=now;slideTimerStartedAt=now;
+  }
+  function rollSlideTimer(nextIndex){if(timerRunning)commitRunningTime();timedSlideIndex=nextIndex;slideTimerStartedAt=Date.now();}
+  function renderTimer(){
+    const totalUsed=currentElapsed(),pageUsed=currentSlideElapsed(),target=plannedMsAt(idx),clock=document.getElementById('ppt-clock');
+    if(clock)clock.textContent=durationText(totalUsed);
+    const slideClock=document.getElementById('ppt-slide-clock'),slidePlan=document.getElementById('ppt-slide-plan'),statusBox=document.getElementById('ppt-slide-status-box'),statusLabel=document.getElementById('ppt-slide-status-label'),statusValue=document.getElementById('ppt-slide-status'),statusHint=document.getElementById('ppt-slide-status-hint');
+    if(slideClock)slideClock.textContent=durationText(pageUsed);if(slidePlan)slidePlan.textContent=target?`计划 ${durationText(target)}`:'计划 —';
+    if(statusBox&&statusLabel&&statusValue&&statusHint){
+      const over=Boolean(target&&pageUsed>target),remaining=Boolean(target&&!over);statusBox.classList.toggle('is-over',over);statusBox.classList.toggle('is-remaining',remaining);
+      statusLabel.textContent=over?'超时':(remaining?'剩余':'计划');statusValue.textContent=target?durationText(Math.abs(target-pageUsed)):'—';statusHint.textContent=over?'已超出本页计划':(remaining?'距本页计划':'未设置');
+    }
+    const totalPlan=totalPlannedMs(),plan=document.getElementById('ppt-plan');
+    if(plan)plan.textContent=totalPlan?`计划 ${Number(totalPlan/60000).toFixed(1)} 分钟 · 预计 ${clockTime(Date.now()+Math.max(0,totalPlan-totalUsed))}`:'计划 —';
+    const section=sectionInfo(idx),sectionEl=document.getElementById('ppt-section');
+    if(sectionEl){sectionEl.hidden=!section;sectionEl.textContent=section?`${section.name} · ${section.position}/${section.count}${section.planned?` · 剩余 ${durationText(Math.max(0,section.planned-section.used))}`:''}`:'';}
+    const timerButton=document.getElementById('ppt-timer-toggle');if(timerButton)timerButton.textContent=timerRunning?'暂停':(totalUsed?'继续计时':'开始计时');
+    const rehearsalButton=document.getElementById('ppt-rehearsal');if(rehearsalButton){rehearsalButton.textContent=rehearsalActive?'结束排练':'排练';rehearsalButton.classList.toggle('ppt-rehearsal-on',rehearsalActive);}
+    renderAutoState();
+  }
+  function toggleTimer(){const now=Date.now();if(timerRunning){commitRunningTime(now);timerRunning=false;}else{timerStartedAt=now;slideTimerStartedAt=now;timedSlideIndex=idx;timerRunning=true;}renderTimer();}
+  function resetTimer(){
+    elapsed=0;slideElapsed=Array(total).fill(0);timedSlideIndex=idx;
+    if(timerRunning){timerStartedAt=Date.now();slideTimerStartedAt=timerStartedAt;}else{timerStartedAt=0;slideTimerStartedAt=0;}
+    renderTimer();
+  }
+  function rehearsalHistory(){try{return JSON.parse(localStorage.getItem(storageKey('rehearsals'))||'[]');}catch(e){return[];}}
+  function toggleRehearsal(){
+    if(rehearsalActive){finishRehearsal(true);return;}
+    rehearsalActive=true;if(timerRunning){commitRunningTime();timerRunning=false;}resetTimer();toggleTimer();renderTimer();
+  }
+  function finishRehearsal(showSummary){
+    if(!rehearsalActive)return;if(timerRunning){commitRunningTime();timerRunning=false;}
+    const result={endedAt:Date.now(),totalMs:elapsed,slides:slideElapsed.map((ms,i)=>({index:i,id:slideId(i),title:noteAt(i).title||slideId(i),ms,targetMs:plannedMsAt(i)}))};
+    const history=rehearsalHistory();history.unshift(result);try{localStorage.setItem(storageKey('rehearsals'),JSON.stringify(history.slice(0,5)));}catch(e){}
+    rehearsalActive=false;renderTimer();if(showSummary)openRehearsalSummary(result,history.slice(0,5));
+  }
+  function openRehearsalSummary(result,history){
+    const rows=result.slides.filter(item=>item.ms>0).map(item=>`<tr><td>${item.index+1}</td><td>${escapeHTML(item.title)}</td><td>${durationText(item.ms)}</td><td>${item.targetMs?signedDuration(item.ms-item.targetMs):'—'}</td></tr>`).join('');
+    const recent=history.map(item=>`<div class="ppt-dialog-row"><span>${new Date(item.endedAt).toLocaleString()}</span><strong>${durationText(item.totalMs)}</strong></div>`).join('');
+    openDialog('排练记录',`<div class="ppt-dialog-section"><div class="ppt-dialog-row"><span>本次总时长</span><strong>${durationText(result.totalMs)}</strong></div><table class="ppt-summary"><thead><tr><th>#</th><th>页面</th><th>实际</th><th>与计划相比</th></tr></thead><tbody>${rows||'<tr><td colspan="4">没有记录到页面时间</td></tr>'}</tbody></table></div><div class="ppt-dialog-section"><h3>最近排练</h3>${recent}</div>`);
+  }
+
+  function autoDurationMs(i=idx){const explicit=Number(noteAt(i).autoAdvanceSeconds);const seconds=Number.isFinite(explicit)&&explicit>0?explicit:autoGlobalSeconds;return seconds>0?seconds*1000:null;}
+  function armAutoAdvance(){autoDeadline=0;autoRemainingMs=autoDurationMs()||0;}
+  function autoBlockedReason(){
+    if(presenterOverviewOn||overviewOn)return'宫格选页中';if(annotationTool!=='none')return'标注中';if(screenMode!=='normal')return'观众屏已暂停';if(document.hidden)return'窗口不可见';
+    const dialog=document.getElementById('ppt-dialog');if(dialog&&!dialog.hidden)return'设置中';
+    if(audienceOpenedAt&&syncState()!=='synced')return'等待观众屏同步';return'';
+  }
+  function updateAutoAdvance(){
+    if(!autoEnabled)return;
+    const duration=autoDurationMs();if(!duration||idx===total-1)return;
+    const blocked=autoBlockedReason(),now=Date.now();
+    if(blocked){if(autoDeadline){autoRemainingMs=Math.max(0,autoDeadline-now);autoDeadline=0;}return;}
+    if(!autoDeadline)autoDeadline=now+(autoRemainingMs||duration);
+    autoRemainingMs=Math.max(0,autoDeadline-now);
+    if(now>=autoDeadline){autoDeadline=0;autoRemainingMs=0;go(idx+1,{force:true});}
+  }
+  function renderAutoState(){
+    const button=document.getElementById('ppt-auto-toggle');if(!button)return;
+    const duration=autoDurationMs(),blocked=autoEnabled?autoBlockedReason():'';
+    button.classList.toggle('is-on',autoEnabled&&!blocked);button.classList.toggle('is-paused',autoEnabled&&Boolean(blocked));
+    if(!autoEnabled)button.textContent='自动翻页 · 关闭';
+    else if(!duration)button.textContent='自动翻页 · 等待时长';
+    else if(idx===total-1)button.textContent='自动翻页 · 已结束';
+    else if(blocked)button.textContent=`自动翻页 · ${blocked}`;
+    else button.textContent=`自动翻页 · ${durationText(autoRemainingMs||duration)}`;
+  }
+  function toggleAutoAdvance(){
+    if(!autoEnabled&&!autoDurationMs()){openSettings();return;}
+    autoEnabled=!autoEnabled;localStorage.setItem(storageKey('auto-enabled'),autoEnabled?'1':'0');armAutoAdvance();renderAutoState();
+  }
+
+  function openDialog(title,html){
+    const dialog=document.getElementById('ppt-dialog');if(!dialog)return;
+    document.getElementById('ppt-dialog-title').textContent=title;document.getElementById('ppt-dialog-body').innerHTML=html;dialog.hidden=false;renderAutoState();
+  }
+  function closeDialog(){const dialog=document.getElementById('ppt-dialog');if(dialog)dialog.hidden=true;renderAutoState();}
+  function applyLayout(value,persist=true){
+    layoutMode=['balanced','slides','notes'].includes(value)?value:'balanced';
+    document.getElementById('ppt-presenter')?.setAttribute('data-layout',layoutMode);
+    if(persist)localStorage.setItem(storageKey('layout'),layoutMode);requestAnimationFrame(fitPresenterFrames);
+  }
+  function applyAudienceScreen(value){
+    const cover=document.getElementById('ppt-audience-cover');if(!cover)return;
+    cover.classList.remove('is-ended');cover.textContent='';
+    if(value==='black'||value==='white'){cover.style.display='block';cover.style.background=value;}else cover.style.display='none';
+  }
+  function showAudienceEnded(){
+    const cover=document.getElementById('ppt-audience-cover');if(cover){cover.style.display='';cover.style.background='';cover.textContent='演示已结束';cover.classList.add('is-ended');}
+    setTimeout(()=>{try{window.close();}catch(e){}},120);
+  }
+  function setScreenMode(value){
+    const next=['normal','black','white','frozen'].includes(value)?value:'normal',wasFrozen=audienceFrozen;
+    screenMode=next;audienceFrozen=next==='frozen';emit({type:'screen',mode:next});
+    if(wasFrozen&&!audienceFrozen)sendGoto(true);updateSyncStatus();armAutoAdvance();renderAutoState();
+  }
+  function openSettings(){
+    openDialog('演示设置',`<div class="ppt-settings-card"><label class="ppt-switch-row" for="ppt-auto-enabled-setting"><span><strong>自动翻页</strong><br><span class="ppt-muted">需要时手动开启，默认关闭</span></span><input id="ppt-auto-enabled-setting" type="checkbox" ${autoEnabled?'checked':''}><span class="ppt-switch" aria-hidden="true"></span></label><div class="ppt-field"><label for="ppt-auto-seconds-setting">全局间隔</label><div class="ppt-stepper"><button id="ppt-auto-minus" type="button" aria-label="减少一秒">−</button><input id="ppt-auto-seconds-setting" type="number" min="1" step="1" value="${autoGlobalSeconds||''}" placeholder="—"><span class="ppt-stepper-unit">秒</span><button id="ppt-auto-plus" type="button" aria-label="增加一秒">+</button></div></div><button id="ppt-settings-save" class="ppt-ui-btn ppt-settings-save" type="button">保存自动翻页</button><p class="ppt-settings-copy">单页 autoAdvanceSeconds 优先于全局间隔；minutes 只是讲述计划。</p></div><div class="ppt-settings-card"><h3>演讲者布局</h3><p class="ppt-settings-copy">根据屏幕宽度调整页面与备注的比例</p><div class="ppt-segmented"><button class="ppt-ui-btn" data-layout-choice="balanced" type="button">均衡</button><button class="ppt-ui-btn" data-layout-choice="slides" type="button">页面优先</button><button class="ppt-ui-btn" data-layout-choice="notes" type="button">备注优先</button></div></div><div class="ppt-settings-card"><h3>观众屏</h3><p class="ppt-settings-copy">临时遮挡或冻结观众屏</p><div class="ppt-segmented screen"><button class="ppt-ui-btn" data-screen-choice="normal" type="button">正常</button><button class="ppt-ui-btn" data-screen-choice="black" type="button">黑屏 B</button><button class="ppt-ui-btn" data-screen-choice="white" type="button">白屏 W</button><button class="ppt-ui-btn" data-screen-choice="frozen" type="button">冻结 F</button></div></div><div class="ppt-dialog-section"><button id="ppt-open-shortcuts" class="ppt-ui-btn" type="button">查看快捷键</button></div>`);
+    document.querySelectorAll('[data-layout-choice]').forEach(button=>{button.classList.toggle('ppt-primary',button.dataset.layoutChoice===layoutMode);button.onclick=()=>{applyLayout(button.dataset.layoutChoice);openSettings();};});
+    document.querySelectorAll('[data-screen-choice]').forEach(button=>{button.classList.toggle('ppt-primary',button.dataset.screenChoice===screenMode);button.onclick=()=>{setScreenMode(button.dataset.screenChoice);openSettings();};});
+    const secondsInput=document.getElementById('ppt-auto-seconds-setting'),stepSeconds=delta=>{const current=Math.max(0,Number(secondsInput.value||0));secondsInput.value=String(Math.max(1,current+delta));};
+    document.getElementById('ppt-auto-minus').onclick=()=>stepSeconds(-1);document.getElementById('ppt-auto-plus').onclick=()=>stepSeconds(1);
+    document.getElementById('ppt-settings-save').onclick=()=>{autoEnabled=document.getElementById('ppt-auto-enabled-setting').checked;autoGlobalSeconds=Math.max(0,Number(secondsInput.value||0));localStorage.setItem(storageKey('auto-enabled'),autoEnabled?'1':'0');localStorage.setItem(storageKey('auto-seconds'),String(autoGlobalSeconds));armAutoAdvance();closeDialog();};
+    document.getElementById('ppt-open-shortcuts').onclick=openShortcuts;
+  }
+  function openShortcuts(){
+    const items=[['← / →','上一页 / 下一页'],['Home / End','首页 / 尾页'],['Esc','宫格选页；标注工具激活时先退出工具'],['L','激光笔'],['C','圈选'],['X','清除标记'],['B / W','观众屏黑屏 / 白屏'],['F','冻结 / 恢复观众屏'],['A','开启 / 关闭自动翻页'],['R','开始 / 结束排练'],['?','快捷键说明']];
+    openDialog('快捷键',`<div class="ppt-shortcuts">${items.map(([key,label])=>`<kbd>${key}</kbd><span>${label}</span>`).join('')}</div>`);
+  }
+  function preflightChecks(){
+    const images=[...document.images],videos=[...document.querySelectorAll('video')],frame=document.getElementById('ppt-current-frame'),rect=frame?.getBoundingClientRect();
+    return[
+      {label:'观众屏连接',ok:['synced','frozen'].includes(syncState()),detail:`当前状态：${document.getElementById('ppt-sync')?.textContent||'未连接'}`},
+      {label:'弹窗权限',ok:!popupBlocked,detail:popupBlocked?'浏览器阻止了观众窗口':'未检测到弹窗拦截'},
+      {label:'全屏状态',ok:Boolean(document.fullscreenElement),warn:true,detail:document.fullscreenElement?'已进入全屏':'尚未全屏，可在演讲前进入'},
+      {label:'字体加载',ok:!document.fonts||document.fonts.status==='loaded',detail:document.fonts?`状态：${document.fonts.status}`:'浏览器不提供字体状态'},
+      {label:'图片资源',ok:images.every(image=>image.complete&&image.naturalWidth>0),detail:`${images.filter(image=>image.complete&&image.naturalWidth>0).length} / ${images.length} 已加载`},
+      {label:'视频资源',ok:videos.every(video=>video.readyState>=2),detail:videos.length?`${videos.filter(video=>video.readyState>=2).length} / ${videos.length} 可播放`:'没有视频'},
+      {label:'当前页 16:9',ok:Boolean(rect&&Math.abs(rect.width/rect.height-16/9)<.003),detail:rect?`${Math.round(rect.width)} × ${Math.round(rect.height)}`:'尚未渲染'}
+    ];
+  }
+  function openPreflight(){
+    const checks=preflightChecks(),html=checks.map(item=>`<div class="ppt-dialog-row"><div class="ppt-check ${item.ok?'is-ok':(item.warn?'is-warn':'')}"><span class="ppt-check-dot"></span><span><strong>${item.label}</strong><br><span class="ppt-muted">${item.detail}</span></span></div><strong>${item.ok?'正常':(item.warn?'建议':'异常')}</strong></div>`).join('');
+    openDialog('演前检查',`<div class="ppt-dialog-section">${html}</div><div class="ppt-dialog-section"><button id="ppt-preflight-refresh" class="ppt-ui-btn" type="button">重新检查</button> <button id="ppt-enter-fullscreen" class="ppt-ui-btn" type="button">进入全屏</button></div><p class="ppt-muted">这里只能检查浏览器和观众页面的软件状态，不能确认 HDMI、转接器或投影仪线缆是否物理连接。</p>`);
+    document.getElementById('ppt-preflight-refresh').onclick=openPreflight;
+    document.getElementById('ppt-enter-fullscreen').onclick=async()=>{try{await document.documentElement.requestFullscreen();}catch(e){}openPreflight();};
+  }
+
+  function initTransport(){
+    if(transportReady)return;transportReady=true;
+    if('BroadcastChannel'in window){try{channel=new BroadcastChannel(channelName());channel.onmessage=e=>receive(e.data);}catch(e){}}
+    addEventListener('message',e=>receive(e.data));
+    addEventListener('storage',e=>{if(e.key===syncKey()&&e.newValue){try{receive(JSON.parse(e.newValue));}catch(err){}}});
+  }
+  function emit(payload,{persist=true}={}){
+    const message={__guizangPptSync:1,session,role:mode,...payload,at:Date.now(),nonce:Math.random().toString(36).slice(2)};
+    try{channel?.postMessage(message);}catch(e){}
+    if(persist)try{localStorage.setItem(syncKey(),JSON.stringify(message));}catch(e){}
+    try{if(mode==='presenter'&&audienceWindow&&!audienceWindow.closed)audienceWindow.postMessage(message,'*');}catch(e){}
+    try{if(mode==='audience'&&window.opener&&!window.opener.closed)window.opener.postMessage(message,'*');}catch(e){}
+  }
+  function receive(message){
+    if(!message||message.__guizangPptSync!==1||message.session!==session||message.role===mode)return;
+    if(message.nonce){if(seenNonceSet.has(message.nonce))return;seenNonceSet.add(message.nonce);seenNonces.push(message.nonce);if(seenNonces.length>256)seenNonceSet.delete(seenNonces.shift());}
+    if(mode==='presenter'){
+      if(message.type==='ready'){popupBlocked=false;sendGoto(true);}
+      if(message.type==='ack'){lastAckAt=Date.now();lastAckIndex=Number(message.index);lastAckSeq=Number(message.seq);updateSyncStatus();}
+      return;
+    }
+    if(mode!=='audience')return;
+    if(message.type==='bye'){showAudienceEnded();return;}
+    if(message.type==='screen'){applyAudienceScreen(message.mode);return;}
+    if(message.type==='laser'&&Number(message.index)===idx){audienceLaser=message.point||null;audienceLaserHideAt=Date.now()+650;renderInks();return;}
+    if(message.type==='circle'&&Number(message.index)===idx&&message.circle){audienceCircles.push(message.circle);renderInks();return;}
+    if(message.type==='clear'&&Number(message.index)===idx){audienceCircles=[];renderInks();return;}
+    if(message.type==='goto'||message.type==='ping'){
+      if(message.type==='goto'){audienceCircles=Array.isArray(message.circles)?message.circles:[];applyAudienceScreen(message.screenMode);go(Number(message.index),{force:true});}
+      emit({type:'ack',index:idx,seq:Number(message.seq)});
+    }
+  }
+  function receivePreview(message){
+    if(!message||message.__guizangPptSync!==1||message.session!==session||message.role!=='presenter'||message.type!=='preview-goto')return;
+    go(Number(message.index),{force:true});
+  }
+  function sendGoto(force=false){
+    if(mode!=='presenter'||audienceFrozen)return;if(force||lastAckIndex!==idx)seq++;
+    emit({type:'goto',index:idx,seq,screenMode,circles});updateSyncStatus();
+  }
+  function syncState(){
+    if(popupBlocked)return'blocked';if(audienceWindow&&audienceWindow.closed)return'disconnected';if(audienceFrozen)return'frozen';
+    if(!lastAckAt)return audienceOpenedAt&&Date.now()-audienceOpenedAt<2600?'connecting':'disconnected';
+    if(Date.now()-lastAckAt>2600)return'disconnected';if(lastAckIndex!==idx||lastAckSeq<seq)return'unsynced';return'synced';
+  }
+  function updateSyncStatus(){
+    const el=document.getElementById('ppt-sync');if(!el)return;const state=syncState();
+    const labels={blocked:'弹窗被拦截',disconnected:'未连接',connecting:'连接中',unsynced:'未同步',frozen:'已冻结',synced:`已同步 · 第 ${idx+1} 页`};
+    el.dataset.state=state;el.textContent=`观众屏 · ${labels[state]}`;
+  }
+  function reopenAudience(){
+    initTransport();popupBlocked=false;audienceOpenedAt=Date.now();lastAckAt=0;lastAckIndex=-1;lastAckSeq=-1;
+    if(audienceFrozen){audienceFrozen=false;screenMode='normal';}
+    audienceWindow=window.open(frameUrl('audience',idx),`guizang-ppt-audience-${session}`,'popup=yes,width=1440,height=900');
+    if(!audienceWindow)popupBlocked=true;updateSyncStatus();
+  }
+  function enterPresenter(openAudience=true){
+    if(mode==='presenter')return;if(overviewOn)toggleOverview();lowPowerBeforePresenter=window.__lowPowerMode;mode='presenter';initTransport();mountShell();
+    document.body.classList.remove('ppt-audience','ppt-preview');document.body.classList.add('ppt-presenter');document.title=`演讲者视图 · ${originalTitle}`;
+    window.__setLowPowerMode?.(true,{persist:false});updateShell();armAutoAdvance();if(openAudience)reopenAudience();
+  }
+  function exitPresenter(){
+    if(rehearsalActive)finishRehearsal(false);else if(timerRunning){commitRunningTime();timerRunning=false;}togglePresenterOverview(false);emit({type:'bye'});audienceWindow=null;audienceOpenedAt=0;lastAckAt=0;lastAckIndex=-1;lastAckSeq=-1;mode='deck';document.body.classList.remove('ppt-presenter');document.title=originalTitle;window.__setLowPowerMode?.(lowPowerBeforePresenter,{persist:false});
+  }
+  function initAudience(){
+    mode='audience';document.body.classList.add('ppt-audience');document.title=`观众屏 · ${originalTitle}`;
+    document.body.insertAdjacentHTML('beforeend','<canvas id="ppt-audience-ink" aria-hidden="true"></canvas><div id="ppt-audience-cover" aria-hidden="true"></div>');
+    const resize=()=>{sizeInk(document.getElementById('ppt-audience-ink'),innerWidth,innerHeight);renderInks();};addEventListener('resize',resize);resize();
+    initTransport();emit({type:'ready',index:idx});
+  }
+  function initPreview(){mode='preview';document.body.classList.add('ppt-preview');window.__setLowPowerMode?.(true,{persist:false});addEventListener('message',e=>{if(e.source===parent)receivePreview(e.data);});}
+  function onSlideChange(nextIndex){
+    if(mode!=='presenter')return;rollSlideTimer(nextIndex);circles=[];draftCircle=null;laserPoint=null;annotationPointerDown=false;armAutoAdvance();updateShell();sendGoto();
+  }
+  function handleKey(e){
+    const editable=e.target?.matches?.('input,textarea,[contenteditable="true"]');
+    if(editable){if(e.key==='Escape')e.target.blur();return true;}
+    if(mode==='audience'||mode==='preview'){e.preventDefault();return true;}
+    if(mode==='deck'&&e.key?.toLowerCase()==='p'&&!e.metaKey&&!e.ctrlKey&&!e.altKey){e.preventDefault();enterPresenter(true);return true;}
+    if(mode!=='presenter')return false;
+    const key=e.key?.toLowerCase();
+    const dialog=document.getElementById('ppt-dialog');
+    if(!dialog?.hidden){if(e.key==='Escape'){e.preventDefault();closeDialog();}return true;}
+    if(e.key==='?'||key==='/'){e.preventDefault();openShortcuts();return true;}
+    if(e.key==='Escape'){e.preventDefault();if(annotationTool!=='none')setAnnotationTool('none');else togglePresenterOverview();return true;}
+    if(presenterOverviewOn)return true;
+    if(key==='l'){e.preventDefault();setAnnotationTool('laser');return true;}
+    if(key==='c'){e.preventDefault();setAnnotationTool('circle');return true;}
+    if(key==='x'){e.preventDefault();clearAnnotations(true);return true;}
+    if(key==='b'){e.preventDefault();setScreenMode(screenMode==='black'?'normal':'black');return true;}
+    if(key==='w'){e.preventDefault();setScreenMode(screenMode==='white'?'normal':'white');return true;}
+    if(key==='f'){e.preventDefault();setScreenMode(audienceFrozen?'normal':'frozen');return true;}
+    if(key==='a'){e.preventDefault();toggleAutoAdvance();return true;}
+    if(key==='r'){e.preventDefault();toggleRehearsal();return true;}
+    if(['ArrowRight','PageDown',' ','ArrowDown'].includes(e.key)){e.preventDefault();go(idx+1,{force:true});return true;}
+    if(['ArrowLeft','PageUp','ArrowUp'].includes(e.key)){e.preventDefault();go(idx-1,{force:true});return true;}
+    if(e.key==='Home'){e.preventDefault();go(0,{force:true});return true;}
+    if(e.key==='End'){e.preventDefault();go(total-1,{force:true});return true;}
+    return false;
+  }
+  function initMode(){
+    document.getElementById('ppt-low-power-btn')?.addEventListener('click',()=>window.__setLowPowerMode(!window.__lowPowerMode));
+    document.getElementById('ppt-overview-btn')?.addEventListener('click',toggleOverview);
+    document.getElementById('ppt-presenter-btn')?.addEventListener('click',()=>enterPresenter(true));
+    if(requestedMode==='audience')initAudience();else if(requestedMode==='preview')initPreview();else if(requestedMode==='presenter')enterPresenter(false);
+  }
+  setInterval(()=>{
+    renderTimer();renderInks();updateAutoAdvance();
+    if(mode==='presenter'&&Date.now()-lastPingAt>900){lastPingAt=Date.now();if(audienceWindow?.closed)updateSyncStatus();emit({type:'ping',index:idx,seq});updateSyncStatus();}
+  },250);
+  return{initMode,onSlideChange,handleKey,slideLabel,enterPresenter,reopenAudience,toggleOverview:togglePresenterOverview,debugState:()=>({mode,idx,session,syncState:syncState(),timerRunning,rehearsalActive,presenterOverviewOn,autoEnabled,autoGlobalSeconds,autoRemainingMs,screenMode,annotationTool,circles:[...circles],audienceCircles:[...audienceCircles],layoutMode})};
+})();
+/* =============== /演讲者模式 / 观众屏同步 =============== */
+
+addEventListener('keydown',e=>{
+  if(window.__pptPresenter?.handleKey(e))return;
+  if(e.key==='Escape'){e.preventDefault();toggleOverview();return;}
+  if(e.key && e.key.toLowerCase()==='b' && !e.metaKey && !e.ctrlKey && !e.altKey){
+    e.preventDefault();
+    window.__setLowPowerMode(!window.__lowPowerMode);
+    return;
+  }
+  if(overviewOn)return;
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '||e.key==='ArrowDown'){
+    if(window.__pipeAdvance && window.__pipeAdvance()) return;
+    go(idx+1);
+    return;
+  }
+  if(e.key==='ArrowLeft'||e.key==='PageUp'||e.key==='ArrowUp')go(idx-1);
+  if(e.key==='Home')go(0);
+  if(e.key==='End')go(total-1);
+});
+
+let wheelTO=null,wheelAcc=0;
+addEventListener('wheel',e=>{
+  wheelAcc+=e.deltaY+e.deltaX;
+  if(Math.abs(wheelAcc)>50){
+    if(wheelAcc>0 && window.__pipeAdvance && window.__pipeAdvance()){
+      wheelAcc=0;
+    }else{
+      go(idx+(wheelAcc>0?1:-1));wheelAcc=0;
+    }
+  }
+  clearTimeout(wheelTO);wheelTO=setTimeout(()=>wheelAcc=0,150);
+},{passive:true});
+
+let tx=0,ty=0;
+addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{
+  const dx=(e.changedTouches[0].clientX-tx);
+  const dy=(e.changedTouches[0].clientY-ty);
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)){
+    if(dx<0 && window.__pipeAdvance && window.__pipeAdvance()) return;
+    go(idx+(dx<0?1:-1));
+  }
+},{passive:true});
+
+/* ?slide=N 直达（1-based），与 Swiss 模板行为一致 */
+const initialSlideParam = new URLSearchParams(location.search).get('slide');
+const initialSlide = initialSlideParam ? Number(initialSlideParam) - 1 : 0;
+go(Number.isFinite(initialSlide) ? initialSlide : 0);
+window.__pptPresenter?.initMode();
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+
+<!-- ============ Motion One 动效引擎（本地优先,CDN 兜底） ============
+     加载策略:先 ./assets/motion.min.js(本地,离线可用),失败 fallback 到 jsDelivr CDN
+     加载完成后挂 window.__playSlide / window.__pipeAdvance,
+     导航脚本会在翻页中段调用 __playSlide(idx),键盘/滚轮/触屏会在翻页前调用 __pipeAdvance()
+     双双失败时会兜底把所有 [data-anim] 设为可见,不让动效破坏阅读
+-->
+<script type="module">
+let motion;
+try {
+  motion = await import('./assets/motion.min.js');
+} catch(e1) {
+  try {
+    motion = await import('https://cdn.jsdelivr.net/npm/motion@11.11.17/+esm');
+  } catch(e2) {
+    console.warn('[motion] local + CDN both failed, disabling animations', e1, e2);
+    document.querySelectorAll('[data-anim]').forEach(el=>{el.style.opacity='1';el.style.transform='none'});
+    document.querySelectorAll('[data-animate="pipeline"] [data-anim]').forEach(el=>el.style.opacity='1');
+  }
+}
+
+if(motion){
+  const { animate, stagger } = motion;
+  document.body.classList.add('motion-ready');
+  const EASE = [.22, 1, .36, 1];
+  const slides = [...document.querySelectorAll('.slide')];
+  let pipeStep = -1;
+  let lastIdx = -1;
+
+  function resetAnims(slide){
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='';
+      el.style.transform='';
+    });
+  }
+
+  function revealStatic(slide){
+    resetAnims(slide);
+    document.getAnimations?.().forEach(a=>a.cancel());
+    slide.querySelectorAll('[data-anim]').forEach(el=>{
+      el.style.opacity='1';
+      el.style.transform='none';
+    });
+  }
+
+  function playSlide(i){
+    const slide = slides[i];
+    if(!slide) return;
+    lastIdx = i;
+    const recipe = slide.dataset.animate || (slide.classList.contains('hero') ? 'hero' : 'cascade');
+
+    if(window.__lowPowerMode){
+      revealStatic(slide);
+      return;
+    }
+
+    if(recipe === 'pipeline'){
+      pipeStep = -1;
+      slide.querySelectorAll('[data-anim]').forEach(el=>{
+        el.style.opacity='0.15';
+        el.style.transform='none';
+      });
+      return;
+    }
+
+    resetAnims(slide);
+    const all = [...slide.querySelectorAll('[data-anim]')];
+    if(!all.length) return;
+
+    if(recipe === 'directional'){
+      const lefts  = all.filter(el=>el.dataset.anim==='left');
+      const divs   = all.filter(el=>el.dataset.anim==='divider');
+      const rights = all.filter(el=>el.dataset.anim==='right');
+      const others = all.filter(el=>!['left','right','divider'].includes(el.dataset.anim));
+      if(others.length) animate(others, {opacity:[0,1], y:[12,0]}, {duration:.6, delay:stagger(.1, {start:.15}), easing:EASE});
+      if(lefts.length)  animate(lefts,  {opacity:[0,1], x:[-24,0]}, {duration:.8, delay:.35, easing:EASE});
+      if(divs.length)   animate(divs,   {opacity:[0,.25]},          {duration:.5, delay:.9});
+      if(rights.length) animate(rights, {opacity:[0,1], x:[24,0]},  {duration:.8, delay:1.0, easing:EASE});
+      return;
+    }
+
+    if(recipe === 'quote'){
+      const lines = all.filter(el=>el.dataset.anim==='line');
+      const others = all.filter(el=>el.dataset.anim!=='line');
+      if(others.length) animate(others, {opacity:[0,1], y:[8,0]},    {duration:.6, delay:stagger(.12, {start:.2}), easing:EASE});
+      if(lines.length)  animate(lines,  {opacity:[.35,1], y:[10,0]}, {duration:.8, delay:stagger(.55, {start:.5}), easing:EASE});
+      return;
+    }
+
+    if(recipe === 'hero'){
+      animate(all, {opacity:[0,1], y:[14,0]}, {duration:.9, delay:stagger(.16, {start:.2}), easing:EASE});
+      return;
+    }
+
+    // default: cascade
+    animate(all, {opacity:[0,1], y:[16,0]}, {duration:.75, delay:stagger(.1, {start:.15}), easing:EASE});
+  }
+
+  function pipeAdvance(){
+    if(window.__lowPowerMode) return false;
+    const slide = slides[lastIdx];
+    if(!slide || slide.dataset.animate !== 'pipeline') return false;
+    const steps  = [...slide.querySelectorAll('[data-anim="step"]')];
+    const arrows = [...slide.querySelectorAll('[data-anim="arrow"]')];
+    if(pipeStep >= steps.length - 1) return false;
+    pipeStep++;
+    animate(steps[pipeStep], {opacity:[0.15,1], y:[8,0]}, {duration:.5, easing:EASE});
+    if(pipeStep > 0 && arrows[pipeStep-1]){
+      animate(arrows[pipeStep-1], {opacity:[0.15,.7]}, {duration:.3, delay:.15});
+    }
+    return true;
+  }
+
+  window.__playSlide = playSlide;
+  window.__pipeAdvance = pipeAdvance;
+
+  // 首屏:go() 已跑过(同步),没来得及触发动效 → 这里补一下(尊重 ?slide=N)
+  playSlide(window.__currentSlideIndex || 0);
+}
+</script>
+<script>
+/* =============== 轻量直接编辑模式 =============== */
+(function(){
+  const key=`career-talk-edit:${location.pathname}`;
+  const editableSelector='.slide h1,.slide h2,.slide h3,.slide p,.slide .title,.slide .kicker,.slide .lead,.slide .note-chip,.slide .scene-label,.slide .path-stop strong,.slide .path-stop span,.slide .reflection strong,.slide .reflection p,.slide .balance h3,.slide .balance p,.slide .final-line';
+  const nodes=[...document.querySelectorAll(editableSelector)];
+  nodes.forEach((el,i)=>{el.dataset.editable=`text-${i}`;el.contentEditable='false';});
+  try{
+    const saved=JSON.parse(localStorage.getItem(key)||'{}');
+    nodes.forEach((el,i)=>{if(saved[i]!==undefined)el.innerHTML=saved[i];});
+  }catch(e){}
+  const toggle=document.getElementById('edit-toggle'),save=document.getElementById('edit-save'),exportBtn=document.getElementById('edit-export');
+  function setEditing(on){
+    document.body.classList.toggle('edit-mode',on);
+    nodes.forEach(el=>{el.contentEditable=on?'true':'false';});
+    toggle.textContent=on?'完成编辑':'编辑文字';
+  }
+  function persist(){
+    const data={};nodes.forEach((el,i)=>data[i]=el.innerHTML);
+    localStorage.setItem(key,JSON.stringify(data));
+    save.textContent='已保存';setTimeout(()=>save.textContent='保存',1200);
+  }
+  toggle.addEventListener('click',()=>setEditing(!document.body.classList.contains('edit-mode')));
+  save.addEventListener('click',persist);
+  exportBtn.addEventListener('click',()=>{
+    persist();
+    const clone=document.documentElement.cloneNode(true);
+    clone.querySelectorAll('[contenteditable]').forEach(el=>el.setAttribute('contenteditable','false'));
+    clone.querySelector('body')?.classList.remove('edit-mode');
+    const blob=new Blob(['<!DOCTYPE html>\n'+clone.outerHTML],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='career-talk-edited.html';a.click();URL.revokeObjectURL(url);
+  });
+  document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();persist();}});
+})();
+</script>
+</body>
+</html>
