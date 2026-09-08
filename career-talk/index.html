@@ -1150,7 +1150,10 @@
       };
       curtainVideo.addEventListener('ended',closeCurtain,{once:true});
       curtainVideo.addEventListener('error',closeCurtain,{once:true});
-      curtainVideo.play().catch(()=>{});      // Never let a missing or blocked opening video hide the actual presentation.      setTimeout(closeCurtain,3500);
+            curtainVideo.addEventListener('stalled',closeCurtain,{once:true});
+        <video id="opening-curtain-video" muted playsinline autoplay preload="auto">
+      // Never let a missing or blocked opening video hide the actual presentation.
+      setTimeout(closeCurtain,3500);
     }
     const internshipPreview=document.querySelector('.internship-preview');
     const internshipPreviewImage=internshipPreview?.querySelector('img');
